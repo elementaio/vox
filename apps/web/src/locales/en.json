@@ -99,6 +99,33 @@
     "joinTokenPrompt": "Join token (from your relay's admin):",
     "signOutConfirm": "Sign out removes this account and its history from this device. You can only restore it with your 12-word phrase. Continue?"
   },
+  "admin": {
+    "title": "🛠️ Relay admin",
+    "wrongToken": "Wrong admin token (or admin is disabled on this relay).",
+    "loginSub": "Enter this relay's admin token to manage members and federated peers.",
+    "adminTokenPlaceholder": "Admin token",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "joinTokens": "Join tokens",
+    "mintToken": "Mint a join token",
+    "newToken": "New token:",
+    "copy": "copy",
+    "giveToMember": "Give this to a new member — they redeem it in the app via \"Join private network\".",
+    "used": "used",
+    "unused": "unused",
+    "members": "Members ({{count}})",
+    "addMemberPubkey": "Add member pubkey",
+    "add": "Add",
+    "remove": "remove",
+    "federatedPeers": "Federated peers ({{count}})",
+    "allowPeerOrigin": "Allow peer origin (https://relay…)",
+    "allow": "Allow",
+    "revoked": "revoked",
+    "revoke": "revoke",
+    "activity": "Activity ({{count}})",
+    "activityNote": "Every admin action, with the token fingerprint and IP behind it.",
+    "noActions": "No admin actions yet."
+  },
   "settings": {
     "toggleLanguage": "العربية"
   }

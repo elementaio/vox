@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { httpBase } from "./lib/server";
+import { useLocales } from "./locales";
 
 /**
  * Web admin panel for a private/federated relay — so a NON-technical admin can
@@ -29,6 +30,7 @@ interface AuditRow {
 const fmtTime = (ts: number): string => new Date(ts).toLocaleString();
 
 export default function AdminPanel() {
+  const { t, toggle } = useLocales();
   const [token, setToken] = useState(sessionStorage.getItem(KEY) ?? "");
   const [authed, setAuthed] = useState(false);
   const [error, setError] = useState("");
@@ -54,14 +56,14 @@ export default function AdminPanel() {
   }
 
   async function refresh() {
-    const [m, t, p, a] = await Promise.all([
+    const [m, toks, p, a] = await Promise.all([
       api<{ members: string[] }>("/admin/members"),
       api<{ tokens: TokenRow[] }>("/admin/tokens"),
       api<{ peers: PeerRow[] }>("/admin/peers"),
       api<{ audit: AuditRow[] }>("/admin/audit"),
     ]);
     setMembers(m.members ?? []);
-    setTokens(t.tokens ?? []);
+    setTokens(toks.tokens ?? []);
     setPeers(p.peers ?? []);
     setAudit(a.audit ?? []);
   }
@@ -74,7 +76,7 @@ export default function AdminPanel() {
       setError("");
       await refresh();
     } catch {
-      setError("Wrong admin token (or admin is disabled on this relay).");
+      setError(t("admin.wrongToken"));
       setAuthed(false);
     }
   }
@@ -113,20 +115,21 @@ export default function AdminPanel() {
     return (
       <div className="lobby">
         <div className="lobby-card">
-          <h1>🛠️ Relay admin</h1>
-          <p className="sub">
-            Enter this relay's admin token to manage members and federated peers.
-          </p>
+          <h1>{t("admin.title")}</h1>
+          <p className="sub">{t("admin.loginSub")}</p>
           <input
             className="pass-input"
             type="password"
             value={token}
             onChange={(e) => setToken(e.target.value)}
-            placeholder="Admin token"
+            placeholder={t("admin.adminTokenPlaceholder")}
             onKeyDown={(e) => e.key === "Enter" && login()}
           />
           {error && <p className="error">{error}</p>}
-          <button onClick={login}>Sign in</button>
+          <button onClick={login}>{t("admin.signIn")}</button>
+          <button className="link" onClick={toggle} style={{ marginTop: 12 }}>
+            {t("settings.toggleLanguage")}
+          </button>
         </div>
       </div>
     );
@@ -135,56 +138,64 @@ export default function AdminPanel() {
   return (
     <div className="admin">
       <header className="admin-head">
-        <h1>🛠️ Relay admin</h1>
-        <button
-          className="link"
-          onClick={() => {
-            setAuthed(false);
-            sessionStorage.removeItem(KEY);
-          }}
-        >
-          Sign out
-        </button>
+        <h1>{t("admin.title")}</h1>
+        <div>
+          <button className="link" onClick={toggle}>
+            {t("settings.toggleLanguage")}
+          </button>
+          <button
+            className="link"
+            onClick={() => {
+              setAuthed(false);
+              sessionStorage.removeItem(KEY);
+            }}
+          >
+            {t("admin.signOut")}
+          </button>
+        </div>
       </header>
 
       <div className="admin-grid">
         <section className="admin-card">
-          <h2>Join tokens</h2>
-          <button onClick={mint}>Mint a join token</button>
+          <h2>{t("admin.joinTokens")}</h2>
+          <button onClick={mint}>{t("admin.mintToken")}</button>
           {minted && (
             <div className="minted">
-              New token: <code>{minted}</code>{" "}
+              {t("admin.newToken")} <code>{minted}</code>{" "}
               <button className="link" onClick={() => navigator.clipboard.writeText(minted)}>
-                copy
+                {t("admin.copy")}
               </button>
-              <div className="muted">
-                Give this to a new member — they redeem it in the app via "Join
-                private network".
-              </div>
+              <div className="muted">{t("admin.giveToMember")}</div>
             </div>
           )}
           <ul className="admin-list">
-            {tokens.map((t) => (
-              <li key={t.token}>
-                <code>{t.token}</code>{" "}
-                <span className={`tag ${t.used ? "used" : ""}`}>{t.used ? "used" : "unused"}</span>
+            {tokens.map((tk) => (
+              <li key={tk.token}>
+                <code>{tk.token}</code>{" "}
+                <span className={`tag ${tk.used ? "used" : ""}`}>
+                  {tk.used ? t("admin.used") : t("admin.unused")}
+                </span>
               </li>
             ))}
           </ul>
         </section>
 
         <section className="admin-card">
-          <h2>Members ({members.length})</h2>
+          <h2>{t("admin.members", { count: members.length })}</h2>
           <div className="admin-row">
-            <input value={addPk} onChange={(e) => setAddPk(e.target.value)} placeholder="Add member pubkey" />
-            <button onClick={addMember}>Add</button>
+            <input
+              value={addPk}
+              onChange={(e) => setAddPk(e.target.value)}
+              placeholder={t("admin.addMemberPubkey")}
+            />
+            <button onClick={addMember}>{t("admin.add")}</button>
           </div>
           <ul className="admin-list">
             {members.map((m) => (
               <li key={m}>
                 <code className="mono">{m}</code>
                 <button className="link danger" onClick={() => removeMember(m)}>
-                  remove
+                  {t("admin.remove")}
                 </button>
               </li>
             ))}
@@ -192,24 +203,24 @@ export default function AdminPanel() {
         </section>
 
         <section className="admin-card">
-          <h2>Federated peers ({peers.length})</h2>
+          <h2>{t("admin.federatedPeers", { count: peers.length })}</h2>
           <div className="admin-row">
             <input
               value={allowOrigin}
               onChange={(e) => setAllowOrigin(e.target.value)}
-              placeholder="Allow peer origin (https://relay…)"
+              placeholder={t("admin.allowPeerOrigin")}
             />
-            <button onClick={allowPeer}>Allow</button>
+            <button onClick={allowPeer}>{t("admin.allow")}</button>
           </div>
           <ul className="admin-list">
             {peers.map((p) => (
               <li key={p.pubkey}>
                 <code className="mono">{p.origin || p.pubkey}</code>
                 {p.revoked ? (
-                  <span className="tag used">revoked</span>
+                  <span className="tag used">{t("admin.revoked")}</span>
                 ) : (
                   <button className="link danger" onClick={() => revokePeer(p.pubkey)}>
-                    revoke
+                    {t("admin.revoke")}
                   </button>
                 )}
               </li>
@@ -218,12 +229,12 @@ export default function AdminPanel() {
         </section>
 
         <section className="admin-card">
-          <h2>Activity ({audit.length})</h2>
+          <h2>{t("admin.activity", { count: audit.length })}</h2>
           <div className="muted" style={{ fontSize: 12, marginBottom: 4 }}>
-            Every admin action, with the token fingerprint and IP behind it.
+            {t("admin.activityNote")}
           </div>
           <ul className="admin-list">
-            {audit.length === 0 && <li className="muted">No admin actions yet.</li>}
+            {audit.length === 0 && <li className="muted">{t("admin.noActions")}</li>}
             {audit.map((a, i) => (
               <li key={i} style={{ display: "block" }}>
                 <span className="tag">{a.action}</span>{" "}
