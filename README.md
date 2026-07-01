@@ -135,6 +135,7 @@ npm i @pochta-chat/sdk
 - **SDK** — identity, sign-then-seal crypto, transport, all message ops → [`packages/sdk`](packages/sdk)
 - **Protocol** — the full wire contract, to build any client → [PROTOCOL.md](PROTOCOL.md)
 - **Architecture** — how the relay, engine, and storage fit → [ARCHITECTURE.md](ARCHITECTURE.md)
+- **Deployment** — self-host any part (relay · STUN/TURN · push), choose your quality → [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ### Develop locally
 

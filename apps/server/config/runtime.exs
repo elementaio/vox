@@ -41,6 +41,12 @@ if token = System.get_env("ADMIN_TOKEN"), do: config(:pochta, :admin_token, toke
 if rl = System.get_env("FEDERATION_RATE_LIMIT"),
   do: config(:pochta, :federation_rate_limit, String.to_integer(rl))
 
+# Self-hosted TURN (coturn): comma-separated URLs + the shared secret.
+if urls = System.get_env("TURN_URLS"),
+  do: config(:pochta, :turn_urls, String.split(urls, ",", trim: true))
+
+if s = System.get_env("TURN_SECRET"), do: config(:pochta, :turn_secret, s)
+
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you

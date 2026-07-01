@@ -1,0 +1,50 @@
+# Pochta FULL STACK — own the whole thing on one server. This is what a provider
+# runs AND what any developer/org runs to be fully independent:
+#   • relay   — the chat/signaling server (Elixir) + serves the web client
+#   • coturn  — STUN + TURN for calls (time-limited creds, shared secret)
+# Push (APNs/FCM) is the 4th service — a gateway you add once you ship your own
+# mobile app (your own store credentials); see DEPLOYMENT.md. Nothing here depends
+# on anyone else's server: you are your own backbone.
+#
+#   cp .env.example .env   # then edit; at minimum set SECRET_KEY_BASE + TURN_SECRET
+#   docker compose -f docker-compose.fullstack.yml up -d
+#
+# Note: coturn uses host networking (TURN needs the real public IP + UDP port
+# range). That's a Linux-server assumption — the intended full-stack environment.
+
+services:
+  relay:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in .env}
+      PHX_SERVER: "true"
+      PORT: "4000"
+      PHX_HOST: ${PHX_HOST:-localhost}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:4000}
+      DATABASE_PATH: /data/chat.db
+      RELAY_KEY_PATH: /data/relay_identity.key
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      # Point clients at our coturn; the relay mints time-limited TURN creds.
+      TURN_URLS: ${TURN_URLS:-turn:localhost:3478,turn:localhost:3478?transport=tcp}
+      TURN_SECRET: ${TURN_SECRET:?set TURN_SECRET in .env (must match coturn)}
+    ports:
+      - "4000:4000"
+    volumes:
+      - pochta-data:/data
+    restart: unless-stopped
+
+  coturn:
+    image: coturn/coturn:latest
+    network_mode: host
+    volumes:
+      - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+    command:
+      - -c
+      - /etc/coturn/turnserver.conf
+      - --static-auth-secret=${TURN_SECRET:?set TURN_SECRET in .env}
+    restart: unless-stopped
+
+volumes:
+  pochta-data:

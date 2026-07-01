@@ -1,0 +1,41 @@
+# Pochta RELAY ONLY — the lean setup: run just the chat relay (own your data + E2E)
+# and borrow a backbone for calls. Point TURN_URLS at any backbone's TURN
+# (content-blind, so E2E is intact), or uncomment coturn below to self-host it and
+# graduate to the full stack.
+#
+#   cp .env.example .env   # set SECRET_KEY_BASE (and TURN_* to use a TURN)
+#   docker compose -f docker-compose.relay-only.yml up -d
+
+services:
+  relay:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in .env}
+      PHX_SERVER: "true"
+      PORT: "4000"
+      PHX_HOST: ${PHX_HOST:-localhost}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:4000}
+      DATABASE_PATH: /data/chat.db
+      RELAY_KEY_PATH: /data/relay_identity.key
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      # Optional — reliable calls across strict NATs. Use the provider's TURN or your own:
+      TURN_URLS: ${TURN_URLS:-}
+      TURN_SECRET: ${TURN_SECRET:-}
+    ports:
+      - "4000:4000"
+    volumes:
+      - pochta-data:/data
+    restart: unless-stopped
+
+  # Uncomment to run your OWN TURN instead of relying on a provider (Linux host):
+  # coturn:
+  #   image: coturn/coturn:latest
+  #   network_mode: host
+  #   volumes: ["./coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro"]
+  #   command: ["-c","/etc/coturn/turnserver.conf","--static-auth-secret=${TURN_SECRET:?}"]
+  #   restart: unless-stopped
+
+volumes:
+  pochta-data:

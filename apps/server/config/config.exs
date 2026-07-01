@@ -42,6 +42,14 @@ config :phoenix, :json_library, Jason
 #    %{urls: "turn:turn.mycompany.internal:3478", username: "u", credential: "p"}]
 config :pochta, :ice_servers, [%{urls: "stun:stun.l.google.com:19302"}]
 
+# Optional self-hosted TURN (coturn) for calls across strict/cellular NATs. When
+# :turn_urls + :turn_secret are set, GET /config hands each client time-limited
+# TURN credentials (coturn `use-auth-secret`); :turn_secret must equal coturn's
+# `static-auth-secret`. STUN can stay public/free; TURN you host (bandwidth) or buy.
+config :pochta, :turn_urls, []
+config :pochta, :turn_secret, nil
+config :pochta, :turn_ttl, 86_400
+
 # Federation trust policy: :open (accept any signature-verified relay),
 # :allowlist (only operator-approved peers), or :tofu (trust on first use).
 # A family/company relay should use :allowlist; a public one :open.
