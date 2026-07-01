@@ -51,6 +51,10 @@ config :pochta, :federation_policy, :open
 # messages in or out; for a fully-private org/gov network).
 config :pochta, :federation_mode, :open
 
+# Max inbound federation pushes accepted per authenticated peer relay, per minute
+# (anti-flood; a signed-but-compromised peer can't drown an inbox). Excess → 429.
+config :pochta, :federation_rate_limit, 120
+
 # Membership: :open (anyone with a valid keypair) or :invite (only pubkeys
 # enrolled via an admin-issued token — a guarded/private network).
 config :pochta, :membership_mode, :open

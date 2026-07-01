@@ -25,6 +25,8 @@ defmodule Pochta.Application do
       Pochta.RelayIdentity,
       # Retries relay-to-relay forwards until the peer relay is reachable.
       Pochta.Federation,
+      # Per-peer rate limit on inbound federation pushes (anti-flood).
+      Pochta.Federation.RateLimiter,
       # Start to serve requests, typically the last entry
       PochtaWeb.Endpoint
     ]

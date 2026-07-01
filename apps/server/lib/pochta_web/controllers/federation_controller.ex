@@ -30,12 +30,16 @@ defmodule PochtaWeb.FederationController do
       Pochta.Federation.closed?() ->
         forbidden(conn)
 
-      accept?(conn, to, params) ->
-        Pochta.Delivery.deliver(to, params["from"] || "", envelope, params["id"], params["ephemeral"] || false)
-        json(conn, %{ok: true})
+      not accept?(conn, to, params) ->
+        conn |> put_status(401) |> json(%{error: "unauthorized relay"})
+
+      # Signed ≠ not-abusive: cap each authenticated peer's push rate (anti-flood).
+      Pochta.Federation.RateLimiter.check(header(conn, "x-relay-pubkey")) == :rate_limited ->
+        conn |> put_status(429) |> json(%{error: "rate limited"})
 
       true ->
-        conn |> put_status(401) |> json(%{error: "unauthorized relay"})
+        Pochta.Delivery.deliver(to, params["from"] || "", envelope, params["id"], params["ephemeral"] || false)
+        json(conn, %{ok: true})
     end
   end
 

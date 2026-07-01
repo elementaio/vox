@@ -6,7 +6,8 @@ defmodule Pochta.Release do
     {2, Pochta.Migrations.AddBlobs},
     {3, Pochta.Migrations.AddFederationOutbox},
     {4, Pochta.Migrations.AddKnownRelays},
-    {5, Pochta.Migrations.AddMembership}
+    {5, Pochta.Migrations.AddMembership},
+    {6, Pochta.Migrations.AddAdminAudit}
   ]
 
   def migrate do

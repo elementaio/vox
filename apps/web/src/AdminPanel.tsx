@@ -18,6 +18,15 @@ interface PeerRow {
   origin?: string;
   revoked: boolean;
 }
+interface AuditRow {
+  action: string;
+  detail?: string;
+  actor?: string;
+  ip?: string;
+  ts: number;
+}
+
+const fmtTime = (ts: number): string => new Date(ts).toLocaleString();
 
 export default function AdminPanel() {
   const [token, setToken] = useState(sessionStorage.getItem(KEY) ?? "");
@@ -29,6 +38,7 @@ export default function AdminPanel() {
   const [minted, setMinted] = useState("");
   const [addPk, setAddPk] = useState("");
   const [allowOrigin, setAllowOrigin] = useState("");
+  const [audit, setAudit] = useState<AuditRow[]>([]);
 
   async function api<T = unknown>(path: string, opts: RequestInit = {}): Promise<T> {
     const res = await fetch(`${httpBase()}${path}`, {
@@ -44,14 +54,16 @@ export default function AdminPanel() {
   }
 
   async function refresh() {
-    const [m, t, p] = await Promise.all([
+    const [m, t, p, a] = await Promise.all([
       api<{ members: string[] }>("/admin/members"),
       api<{ tokens: TokenRow[] }>("/admin/tokens"),
       api<{ peers: PeerRow[] }>("/admin/peers"),
+      api<{ audit: AuditRow[] }>("/admin/audit"),
     ]);
     setMembers(m.members ?? []);
     setTokens(t.tokens ?? []);
     setPeers(p.peers ?? []);
+    setAudit(a.audit ?? []);
   }
 
   async function login() {
@@ -200,6 +212,25 @@ export default function AdminPanel() {
                     revoke
                   </button>
                 )}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="admin-card">
+          <h2>Activity ({audit.length})</h2>
+          <div className="muted" style={{ fontSize: 12, marginBottom: 4 }}>
+            Every admin action, with the token fingerprint and IP behind it.
+          </div>
+          <ul className="admin-list">
+            {audit.length === 0 && <li className="muted">No admin actions yet.</li>}
+            {audit.map((a, i) => (
+              <li key={i} style={{ display: "block" }}>
+                <span className="tag">{a.action}</span>{" "}
+                {a.detail && <code className="mono">{a.detail}</code>}
+                <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>
+                  {a.ip} · {a.actor} · {fmtTime(a.ts)}
+                </div>
               </li>
             ))}
           </ul>

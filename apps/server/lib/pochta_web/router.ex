@@ -57,6 +57,7 @@ defmodule PochtaWeb.Router do
     get "/peers", AdminController, :peers
     post "/peers/allow", AdminController, :allow_peer
     post "/peers/revoke", AdminController, :revoke_peer
+    get "/audit", AdminController, :audit_log
   end
 
   # Serve the SPA at /admin too (the panel is a route in the web client).

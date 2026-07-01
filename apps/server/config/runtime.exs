@@ -38,6 +38,9 @@ if System.get_env("MEMBERSHIP_MODE") == "invite",
 
 if token = System.get_env("ADMIN_TOKEN"), do: config(:pochta, :admin_token, token)
 
+if rl = System.get_env("FEDERATION_RATE_LIMIT"),
+  do: config(:pochta, :federation_rate_limit, String.to_integer(rl))
+
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
