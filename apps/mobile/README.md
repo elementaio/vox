@@ -6,12 +6,29 @@ core the web and desktop apps use. Fork it to ship your own branded app.
 
 ## Status
 
-- ✅ **Onboarding works on-device** — create/restore a self-owned identity and store
-  it in an **encrypted vault**. This is the piece that proves the SDK's crypto runs
-  natively (the SDK is pure-JS since v0.1.1 — no WebCrypto).
-- ⏭️ **Next:** the messenger itself (contacts, chat, receipts) — it reuses the same
-  SDK `Client` as the web app with the native `store` adapter; then **calls** via
-  `react-native-webrtc` (needs a dev build, not Expo Go).
+- ✅ **Onboarding + messenger scaffolded and type-clean** — create/restore a
+  self-owned identity into an **encrypted vault**, connect to a relay, add contacts
+  by invite, and chat. Reuses the same SDK `Client` as the web app. `tsc` passes
+  against RN/Expo/SDK types (run it on a device/simulator to see it live).
+- ✅ **Dual language (English + Arabic, RTL)** — every string lives in `src/i18n.tsx`.
+- ⏭️ **Next:** voice/video via `react-native-webrtc` (needs a dev build), media,
+  push, and keychain-derived MMKV encryption.
+
+## Structure (atomic / modular)
+
+Small, single-purpose files — no monolith screens:
+
+```
+App.tsx              thin root: LanguageProvider + identity gate
+src/
+  theme.ts           design tokens (colors, spacing)
+  i18n.tsx           en/ar dictionaries + RTL (the only place strings live)
+  ui.tsx             atoms: Screen, Button, Input, Title, Link, …
+  components/        MessageBubble · Composer · ContactRow · TopBar
+  hooks/useMessenger.ts   all SDK Client wiring + state (no UI)
+  screens/           Welcome · Unlock · RelaySetup · Contacts · Chat · Messenger
+  adapters.ts        MMKV-backed KVStore + Store for the SDK
+```
 
 ## How it's wired
 

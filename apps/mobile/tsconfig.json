@@ -3,7 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-jsx",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM"]
   },
   "include": ["**/*.ts", "**/*.tsx"]
 }

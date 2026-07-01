@@ -80,3 +80,29 @@ export const store: Store = {
     return undefined;
   },
 };
+
+// --- UI query helpers (synchronous reads for the messenger screen) ----------
+// The SDK `Store` only exposes the client's write-ops; the UI reads history here.
+
+export function getContacts(): StoredContact[] {
+  return mmkv
+    .getAllKeys()
+    .filter((k) => k.startsWith("contact:"))
+    .map((k) => readJSON<StoredContact>(k))
+    .filter((c): c is StoredContact => !!c)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function getMessages(contact: string): StoredMessage[] {
+  return mmkv
+    .getAllKeys()
+    .filter((k) => k.startsWith("msg:"))
+    .map((k) => readJSON<StoredMessage>(k))
+    .filter((m): m is StoredMessage => !!m && m.contact === contact)
+    .sort((a, b) => a.ts - b.ts);
+}
+
+export function lastMessage(contact: string): StoredMessage | undefined {
+  const all = getMessages(contact);
+  return all[all.length - 1];
+}
