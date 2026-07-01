@@ -1,0 +1,30 @@
+# JS / web
+node_modules/
+apps/web/dist/
+apps/web/.vite/
+packages/*/dist/
+*.local
+
+# Elixir / Phoenix
+apps/server/_build/
+apps/server/deps/
+apps/server/.elixir_ls/
+apps/server/*.ez
+erl_crash.dump
+# Built SPA bundled into the release at build time (from `pnpm build`)
+apps/server/priv/static/app/
+
+# OS / editor
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# SQLite (server durable store)
+apps/server/*.db
+apps/server/*.db-*
+plan/
+
+# Relay federation signing key
+apps/server/*.key
+apps/server/relay_identity.key

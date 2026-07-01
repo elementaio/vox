@@ -1,0 +1,13 @@
+{
+  "name": "webrtc-chat",
+  "version": "0.0.1",
+  "private": true,
+  "description": "P2P chat + voice/video over WebRTC. Server relays signaling only; content stays peer-to-peer.",
+  "packageManager": "pnpm@10.30.3",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:server": "cd apps/server && mix phx.server",
+    "setup:server": "cd apps/server && mix deps.get",
+    "build": "pnpm --filter web build && rm -rf apps/server/priv/static/app && cp -r apps/web/dist apps/server/priv/static/app"
+  }
+}

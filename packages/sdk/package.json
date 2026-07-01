@@ -1,0 +1,26 @@
+{
+  "name": "@pochta-chat/sdk",
+  "version": "0.1.0",
+  "description": "Framework-agnostic client SDK for Pochta — self-owned identity, end-to-end sign-then-seal crypto, relay transport, message ops, calls, and media. Ships no storage engine and no UI; you inject those.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["pochta", "e2e", "chat", "webrtc", "ed25519", "x25519", "sdk"],
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@noble/ciphers": "^2.2.0",
+    "@noble/curves": "^2.2.0",
+    "@noble/hashes": "^2.2.0",
+    "@scure/bip39": "^2.2.0"
+  },
+  "peerDependencies": {
+    "phoenix": "^1.7"
+  },
+  "devDependencies": {
+    "@types/phoenix": "^1.6.7",
+    "phoenix": "^1.8.8"
+  },
+  "comment": "v0.1 ships TypeScript source (exports → ./src/index.ts); the web app consumes it via the @pochta-chat/sdk workspace dep + a Vite/tsconfig alias to the source. To publish to npm under @pochta-chat: add a build step (tsc/tsup → dist) and point exports/types at the compiled output."
+}

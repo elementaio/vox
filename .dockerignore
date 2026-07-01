@@ -1,0 +1,19 @@
+# Keep the build context small and reproducible — the image builds everything
+# from source inside the stages, so host build artifacts must not leak in.
+**/_build
+**/deps
+**/node_modules
+**/.git
+**/cover
+**/.elixir_ls
+**/priv/static/app
+apps/web/dist
+*.db
+*.db-*
+*.key
+apps/server/relay_identity.key
+apps/server/*.db*
+signaling_dev.db*
+.DS_Store
+**/.DS_Store
+scratchpad

@@ -1,0 +1,4 @@
+Vendored copy of chat_engine — DO NOT edit here.
+Source: /Users/emad/projects/games/webrtc/../../db/engine
+Upstream rev: ba9e835
+Re-sync with: scripts/vendor-engine.sh
