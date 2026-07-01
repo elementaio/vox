@@ -1,0 +1,34 @@
+{
+  "common": {
+    "back": "Back",
+    "continue": "Continue"
+  },
+  "onboarding": {
+    "accountTitle": "🔒 Your account",
+    "chooseSub": "Your account lives on this device — a key only you hold. No email, no password server, no company that can take it.",
+    "createAccount": "Create new account",
+    "restoreFromPhrase": "Restore from 12-word phrase",
+    "backupSub": "Write down these 12 words and keep them safe. They are the only way to restore your account on another device.",
+    "youAre": "You are: {{name}}",
+    "savedContinue": "I saved my 12 words — continue",
+    "restoreSub": "Enter your 12-word phrase, words separated by spaces.",
+    "phrasePlaceholder": "word1 word2 word3 …",
+    "passSub": "Set a passphrase to encrypt this account on this device. You'll enter it to unlock the app. If you forget it, restore with your 12 words.",
+    "passphrase": "Passphrase",
+    "confirmPassphrase": "Confirm passphrase",
+    "encrypting": "Encrypting…",
+    "encryptContinue": "Encrypt & continue",
+    "useAtLeast6": "Use at least 6 characters.",
+    "passNoMatch": "Passphrases don't match.",
+    "welcomeBack": "🔒 Welcome back",
+    "unlockSub": "Enter your passphrase to unlock this device.",
+    "passphrasePlaceholder": "Passphrase",
+    "unlocking": "Unlocking…",
+    "unlock": "Unlock",
+    "forgotRestore": "Forgot passphrase? Restore with 12 words",
+    "wrongPassphrase": "Wrong passphrase."
+  },
+  "settings": {
+    "toggleLanguage": "العربية"
+  }
+}

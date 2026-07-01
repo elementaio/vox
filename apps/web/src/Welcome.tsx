@@ -5,6 +5,7 @@ import {
   restoreIdentity,
   type Identity,
 } from "./lib/identity";
+import { useLocales } from "./locales";
 
 /**
  * First-run onboarding. Creates or restores a self-owned account (a keypair),
@@ -12,6 +13,7 @@ import {
  * device; the 12 words are the only off-device backup.
  */
 export default function Welcome({ onReady }: { onReady: (id: Identity) => void }) {
+  const { t, toggle } = useLocales();
   const [mode, setMode] = useState<"choose" | "backup" | "restore" | "pass">("choose");
   const [draft, setDraft] = useState<Identity | null>(null);
   const [phrase, setPhrase] = useState("");
@@ -37,8 +39,8 @@ export default function Welcome({ onReady }: { onReady: (id: Identity) => void }
 
   async function finish() {
     if (!draft) return;
-    if (pass.length < 6) return setError("Use at least 6 characters.");
-    if (pass !== confirm) return setError("Passphrases don't match.");
+    if (pass.length < 6) return setError(t("onboarding.useAtLeast6"));
+    if (pass !== confirm) return setError(t("onboarding.passNoMatch"));
     setBusy(true);
     await persistIdentity(draft, pass);
     onReady(draft);
@@ -47,27 +49,21 @@ export default function Welcome({ onReady }: { onReady: (id: Identity) => void }
   return (
     <div className="lobby">
       <div className="lobby-card">
-        <h1>🔒 Your account</h1>
+        <h1>{t("onboarding.accountTitle")}</h1>
 
         {mode === "choose" && (
           <>
-            <p className="sub">
-              Your account lives on this device — a key only you hold. No email,
-              no password server, no company that can take it.
-            </p>
-            <button onClick={startCreate}>Create new account</button>
+            <p className="sub">{t("onboarding.chooseSub")}</p>
+            <button onClick={startCreate}>{t("onboarding.createAccount")}</button>
             <button className="ghost" onClick={() => setMode("restore")} style={{ marginTop: 10 }}>
-              Restore from 12-word phrase
+              {t("onboarding.restoreFromPhrase")}
             </button>
           </>
         )}
 
         {mode === "backup" && draft && (
           <>
-            <p className="sub">
-              Write down these 12 words and keep them safe. They are the{" "}
-              <strong>only</strong> way to restore your account on another device.
-            </p>
+            <p className="sub">{t("onboarding.backupSub")}</p>
             <div className="phrase">
               {draft.mnemonic.split(" ").map((w, i) => (
                 <span key={i}>
@@ -76,16 +72,14 @@ export default function Welcome({ onReady }: { onReady: (id: Identity) => void }
                 </span>
               ))}
             </div>
-            <p className="tip">
-              You are: <strong>{draft.name}</strong>
-            </p>
-            <button onClick={() => setMode("pass")}>I saved my 12 words — continue</button>
+            <p className="tip">{t("onboarding.youAre", { name: draft.name })}</p>
+            <button onClick={() => setMode("pass")}>{t("onboarding.savedContinue")}</button>
           </>
         )}
 
         {mode === "restore" && (
           <>
-            <p className="sub">Enter your 12-word phrase, words separated by spaces.</p>
+            <p className="sub">{t("onboarding.restoreSub")}</p>
             <textarea
               className="phrase-input"
               value={phrase}
@@ -93,24 +87,20 @@ export default function Welcome({ onReady }: { onReady: (id: Identity) => void }
                 setPhrase(e.target.value);
                 setError("");
               }}
-              placeholder="word1 word2 word3 …"
+              placeholder={t("onboarding.phrasePlaceholder")}
               rows={3}
             />
             {error && <p className="error">{error}</p>}
-            <button onClick={doRestore}>Continue</button>
+            <button onClick={doRestore}>{t("common.continue")}</button>
             <button className="ghost" onClick={() => setMode("choose")} style={{ marginTop: 10 }}>
-              Back
+              {t("common.back")}
             </button>
           </>
         )}
 
         {mode === "pass" && (
           <>
-            <p className="sub">
-              Set a passphrase to <strong>encrypt this account on this device</strong>.
-              You'll enter it to unlock the app. If you forget it, restore with your
-              12 words.
-            </p>
+            <p className="sub">{t("onboarding.passSub")}</p>
             <input
               className="pass-input"
               type="password"
@@ -119,7 +109,7 @@ export default function Welcome({ onReady }: { onReady: (id: Identity) => void }
                 setPass(e.target.value);
                 setError("");
               }}
-              placeholder="Passphrase"
+              placeholder={t("onboarding.passphrase")}
             />
             <input
               className="pass-input"
@@ -129,15 +119,19 @@ export default function Welcome({ onReady }: { onReady: (id: Identity) => void }
                 setConfirm(e.target.value);
                 setError("");
               }}
-              placeholder="Confirm passphrase"
+              placeholder={t("onboarding.confirmPassphrase")}
               onKeyDown={(e) => e.key === "Enter" && finish()}
             />
             {error && <p className="error">{error}</p>}
             <button onClick={finish} disabled={busy}>
-              {busy ? "Encrypting…" : "Encrypt & continue"}
+              {busy ? t("onboarding.encrypting") : t("onboarding.encryptContinue")}
             </button>
           </>
         )}
+
+        <button className="link" onClick={toggle} style={{ marginTop: 14 }}>
+          {t("settings.toggleLanguage")}
+        </button>
       </div>
     </div>
   );

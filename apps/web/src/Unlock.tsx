@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { unlockIdentity, type Identity } from "./lib/identity";
+import { useLocales } from "./locales";
 
 /**
  * Unlock screen — shown when an encrypted account exists on this device.
@@ -12,6 +13,7 @@ export default function Unlock({
   onReady: (id: Identity) => void;
   onReset: () => void;
 }) {
+  const { t, toggle } = useLocales();
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -21,14 +23,14 @@ export default function Unlock({
     const id = await unlockIdentity(pass);
     setBusy(false);
     if (id) onReady(id);
-    else setError("Wrong passphrase.");
+    else setError(t("onboarding.wrongPassphrase"));
   }
 
   return (
     <div className="lobby">
       <div className="lobby-card">
-        <h1>🔒 Welcome back</h1>
-        <p className="sub">Enter your passphrase to unlock this device.</p>
+        <h1>{t("onboarding.welcomeBack")}</h1>
+        <p className="sub">{t("onboarding.unlockSub")}</p>
         <input
           className="pass-input"
           type="password"
@@ -38,15 +40,18 @@ export default function Unlock({
             setPass(e.target.value);
             setError("");
           }}
-          placeholder="Passphrase"
+          placeholder={t("onboarding.passphrasePlaceholder")}
           onKeyDown={(e) => e.key === "Enter" && unlock()}
         />
         {error && <p className="error">{error}</p>}
         <button onClick={unlock} disabled={busy}>
-          {busy ? "Unlocking…" : "Unlock"}
+          {busy ? t("onboarding.unlocking") : t("onboarding.unlock")}
         </button>
         <button className="link" onClick={onReset} style={{ marginTop: 12 }}>
-          Forgot passphrase? Restore with 12 words
+          {t("onboarding.forgotRestore")}
+        </button>
+        <button className="link" onClick={toggle}>
+          {t("settings.toggleLanguage")}
         </button>
       </div>
     </div>
