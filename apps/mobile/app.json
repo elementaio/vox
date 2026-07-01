@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Pochta",
+    "slug": "pochta",
+    "version": "0.1.0",
+    "scheme": "pochta",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "backgroundColor": "#0b0d12",
+    "ios": {
+      "bundleIdentifier": "qa.uts.pochta",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Pochta uses the camera for video calls.",
+        "NSMicrophoneUsageDescription": "Pochta uses the microphone for voice and video calls."
+      }
+    },
+    "android": {
+      "package": "qa.uts.pochta",
+      "permissions": ["CAMERA", "RECORD_AUDIO", "INTERNET"]
+    }
+  }
+}

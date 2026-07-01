@@ -8,6 +8,11 @@ packages/*/dist/
 # Desktop (Electron) build output
 apps/desktop/out/
 
+# Mobile (Expo / React Native)
+apps/mobile/.expo/
+apps/mobile/ios/
+apps/mobile/android/
+
 # Elixir / Phoenix
 apps/server/_build/
 apps/server/deps/

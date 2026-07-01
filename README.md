@@ -137,6 +137,24 @@ npm i @pochta-chat/sdk
 - **Architecture** — how the relay, engine, and storage fit → [ARCHITECTURE.md](ARCHITECTURE.md)
 - **Deployment** — self-host any part (relay · STUN/TURN · push), choose your quality → [DEPLOYMENT.md](DEPLOYMENT.md)
 
+### Monorepo layout
+
+Every frontend is a thin, **forkable** app over the same published SDK — take one
+as a starting point for your own branded client.
+
+```
+packages/
+  sdk/        @pochta-chat/sdk — the shared client core (published to npm)
+apps/
+  server/     the Pochta relay (Elixir/Phoenix) — the backend + serves the web client
+  web/        web client        (React + Vite)      — consumes the SDK
+  desktop/    desktop client    (Electron)          — consumes the SDK
+  mobile/     mobile client      (Expo / React Native) — consumes the SDK
+  site/       the marketing site (static, pochta.uts.qa)
+deploy/       compose files + coturn config (self-host the relay + STUN/TURN)
+scripts/      launchers (run the release) + vendor-engine
+```
+
 ### Develop locally
 
 ```sh
@@ -156,9 +174,9 @@ receipts and typing · presence · edit / delete / reactions / replies · images
 notes and files · 1:1 voice/video calls · one-command self-hosting · signed
 relay-to-relay federation · private/guarded (org/gov) modes · a friendly admin web panel.
 
-**Frontends:** web (done) · desktop ([Electron](apps/desktop), for reliable WebRTC —
-scaffolded) · mobile (Expo/React Native — planned). All three are thin shells over
-the same [`@pochta-chat/sdk`](packages/sdk), so anyone can build their own too.
+**Frontends:** web (done) · desktop ([Electron](apps/desktop), scaffolded) · mobile
+([Expo](apps/mobile) — onboarding works on-device; messenger next). All three are
+thin, forkable shells over the same [`@pochta-chat/sdk`](packages/sdk).
 
 **Planned:** package the desktop/mobile apps · a double-click server runner · self-host
 TURN (coturn) for strict NATs · mobile push · per-device keys and forward secrecy ·
