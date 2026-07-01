@@ -122,19 +122,30 @@ Today the backbone stack is **ours**, and any developer/org can self-host the sa
 stack. The next tier is **donors** — volunteers who lend a computer + bandwidth to
 strengthen the network (the "donate your machine" model), the way Tor/IPFS nodes do.
 
-The current design deliberately leaves a place for them:
+**Safe to donate — the whole reason this works.** Every service is content-blind, so
+a donor only ever handles **ciphertext**. They can't read messages, can't be asked to
+moderate content, and carry little liability — which is exactly what makes strangers'
+machines usable.
 
-- **Safe to donate.** Every service is content-blind — a donated relay only ever
-  holds **ciphertext**, and donated TURN only relays **encrypted** media. A donor
-  can never read anyone's messages, so lending capacity carries no privacy cost to
-  users (and little liability to the donor).
-- **They join by federation.** A donor node is just a packaged relay (and/or coturn)
-  that **federates** into the network — signed, origin-bound, revocable — adding
-  capacity and redundancy without any central permission.
-- **What's still needed (Phase 4 mesh):** untrusted-node gossip/discovery, message
-  **replication across several donor nodes** for uptime, node identity + reputation,
-  and NAT hole-punching for home machines. The signed-federation + content-blind
-  foundation is built to grow into this; the mesh layer is the remaining work.
+**What a donor can actually run** (ranked by value / fit):
+
+| Donor runs | Why it's the best fit | Content-blind? |
+|---|---|---|
+| **TURN relay** (coturn) | the single most **expensive** piece (call media = bandwidth); trivial to add to a pool; donating it directly funds free calls | yes — encrypted media only |
+| **Relay node** (store-and-forward) | more relays = redundancy + geographic reach + no single point; the "donate your computer" node | yes — sealed queue |
+| **Encrypted blob storage** | disk for media too big to inline (content-addressed, redundant, IPFS-style) | yes — encrypted blobs |
+| **STUN / bootstrap node** | cheap; helps new nodes and clients discover the network | yes — just IP queries |
+
+**What a donor *can't* do** — and that's a feature: **read or moderate content**
+(E2E forbids it), or **send push** (APNs/FCM need the app owner's store credentials).
+So push stays with whoever publishes the app; donors handle the content-blind bulk.
+
+**What's still needed (Phase 4 mesh):** a donor node is just a packaged relay/coturn
+that **federates** in (signed, origin-bound, revocable). To lean on *untrusted*
+donors at scale we still need gossip discovery, **message replication across several
+nodes** for uptime, node identity + reputation (so a flaky/malicious donor is routed
+around), and NAT hole-punching for home machines. The content-blind + signed-federation
+foundation is built to grow into this; the mesh layer is the remaining work.
 
 So: provider stack now → self-hostable by anyone → donor mesh later, with nothing in
 today's architecture blocking that path.
