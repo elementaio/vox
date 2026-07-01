@@ -1,9 +1,9 @@
-defmodule Signaling.MixProject do
+defmodule Pochta.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :signaling,
+      app: :pochta,
       version: "0.1.0",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -19,7 +19,7 @@ defmodule Signaling.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {Signaling.Application, []},
+      mod: {Pochta.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end

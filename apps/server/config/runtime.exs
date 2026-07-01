@@ -12,31 +12,31 @@ import Config
 # If you use `mix release`, you need to explicitly enable the server
 # by passing the PHX_SERVER=true when you start it:
 #
-#     PHX_SERVER=true bin/signaling start
+#     PHX_SERVER=true bin/pochta start
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
 if System.get_env("PHX_SERVER") do
-  config :signaling, SignalingWeb.Endpoint, server: true
+  config :pochta, PochtaWeb.Endpoint, server: true
 end
 
-config :signaling, SignalingWeb.Endpoint,
+config :pochta, PochtaWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 # Per-instance SQLite path (lets you run multiple relays from one build, e.g. to
 # test federation). Applies in any env when set.
 if db = System.get_env("DATABASE_PATH") do
-  config :signaling, Signaling.Repo, database: db, journal_mode: :wal
+  config :pochta, Pochta.Repo, database: db, journal_mode: :wal
 end
 
 # Private-network knobs (runtime so a self-hoster sets them via env):
 if System.get_env("FEDERATION_MODE") == "closed",
-  do: config(:signaling, :federation_mode, :closed)
+  do: config(:pochta, :federation_mode, :closed)
 
 if System.get_env("MEMBERSHIP_MODE") == "invite",
-  do: config(:signaling, :membership_mode, :invite)
+  do: config(:pochta, :membership_mode, :invite)
 
-if token = System.get_env("ADMIN_TOKEN"), do: config(:signaling, :admin_token, token)
+if token = System.get_env("ADMIN_TOKEN"), do: config(:pochta, :admin_token, token)
 
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
@@ -56,14 +56,14 @@ if config_env() == :prod do
   # Durable store for the engine ports. SQLite on disk by default (plug-and-play
   # self-host); point DATABASE_PATH at a persistent volume. For a large relay,
   # set ecto_adapter to Postgres and give this Repo url/credentials instead.
-  config :signaling, Signaling.Repo,
+  config :pochta, Pochta.Repo,
     database: System.get_env("DATABASE_PATH") || "/data/chat.db",
     journal_mode: :wal,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
 
-  config :signaling, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+  config :pochta, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
-  config :signaling, SignalingWeb.Endpoint,
+  config :pochta, PochtaWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     http: [
       # Enable IPv6 and bind on all interfaces.
@@ -79,7 +79,7 @@ if config_env() == :prod do
   # To get SSL working, you will need to add the `https` key
   # to your endpoint configuration:
   #
-  #     config :signaling, SignalingWeb.Endpoint,
+  #     config :pochta, PochtaWeb.Endpoint,
   #       https: [
   #         ...,
   #         port: 443,
@@ -101,7 +101,7 @@ if config_env() == :prod do
   # We also recommend setting `force_ssl` in your config/prod.exs,
   # ensuring no data is ever sent via http, always redirecting to https:
   #
-  #     config :signaling, SignalingWeb.Endpoint,
+  #     config :pochta, PochtaWeb.Endpoint,
   #       force_ssl: [hsts: true]
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.

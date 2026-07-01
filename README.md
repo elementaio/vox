@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📮 Pochta
+# Pochta
 
 ### Your mail, not their archive.
 
@@ -8,11 +8,11 @@
 with no phone number, no email, no account on someone else's server. Run it for your
 family, your company, or your whole organization, on your own machine.
 
-[![npm](https://img.shields.io/npm/v/@pochta-chat/sdk?label=%40pochta-chat%2Fsdk&color=cb3837)](https://www.npmjs.com/package/@pochta-chat/sdk)
-![encryption](https://img.shields.io/badge/encryption-end--to--end-2ea44f)
-![account](https://img.shields.io/badge/account-a_keypair,_not_an_email-blue)
-![hosting](https://img.shields.io/badge/hosting-self--hosted-orange)
-![license](https://img.shields.io/badge/license-MIT-blue)
+[![npm](https://img.shields.io/npm/v/@pochta-chat/sdk?logo=npm&label=%40pochta-chat%2Fsdk&color=cb3837)](https://www.npmjs.com/package/@pochta-chat/sdk)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+![Elixir](https://img.shields.io/badge/relay-Elixir%20%2F%20Phoenix-4B275F?logo=elixir&logoColor=white)
+![TypeScript](https://img.shields.io/badge/client-React%20%2F%20TypeScript-3178C6?logo=typescript&logoColor=white)
+![End-to-end encrypted](https://img.shields.io/badge/encryption-end--to--end-2ea44f)
 
 </div>
 
@@ -30,38 +30,37 @@ Every mainstream messenger asks you to trust a company: with your phone number, 
 contacts, your metadata, and a copy of your messages on their servers. Pochta removes
 the company from the middle.
 
-- 🔐 **Truly end-to-end.** Every message is signed by you and sealed to the recipient.
-  The server only ever sees ciphertext — it *cannot* read your chats, even if it wanted
-  to, even if compelled.
-- 🗝️ **You own your identity.** Your account is a cryptographic key created on your
-  device — backed up by 12 words, like a crypto wallet. No email, no password, no phone
-  number, nothing to leak or be locked out of.
-- 🏠 **Anyone can host it.** The whole server is one small program you run on a spare
-  PC, a Mac, a company box, or a NAS. Your family or company runs *their own* Pochta,
-  off the global network entirely.
-- 🕊️ **No archive, by design.** Your history lives on *your* devices. The server keeps
+- **Truly end-to-end.** Every message is signed by you and sealed to the recipient.
+  The server only ever sees ciphertext — it *cannot* read your chats, even if compelled.
+- **You own your identity.** Your account is a cryptographic key created on your
+  device, backed up by 12 words like a crypto wallet. No email, no password, no phone
+  number — nothing to leak or be locked out of.
+- **Anyone can host it.** The whole server is one small program you run on a spare PC,
+  a Mac, a company box, or a NAS. Your family or company runs *their own* Pochta, off
+  the global network entirely.
+- **No archive, by design.** Your history lives on *your* devices. The server keeps
   sealed messages only until they're delivered, then deletes them.
-- 🚫 **No blockchain, no tokens, no tracking.** Just proven public-key cryptography and
-  a plain, honest post-office model.
+- **No blockchain, no tokens, no tracking.** Just proven public-key cryptography and a
+  plain, honest post-office model.
 
 ## What you can do
 
-💬 **Chat** with sent · delivered · read receipts, typing indicators, replies, emoji
-reactions, and edit / delete-for-everyone — everything you expect from a modern messenger.
-📞 **Call** over voice & video, peer-to-peer.
-📎 **Share** photos, voice notes, and files — all encrypted on your device before they
-ever leave it.
-📱 **Use every device** — link a phone or laptop with your 12 words and your
-conversations sync across all of them.
-🟢 **See presence** — who's online, who was last seen.
+- **Chat** with sent · delivered · read receipts, typing indicators, replies, emoji
+  reactions, and edit / delete-for-everyone.
+- **Call** over voice and video, peer-to-peer.
+- **Share** photos, voice notes, and files — encrypted on your device before they ever
+  leave it.
+- **Use every device** — link a phone or laptop with your 12 words; conversations sync
+  across all of them.
+- **See presence** — who's online, who was last seen.
 
 ## Who it's for
 
-- 👨‍👩‍👧 **Families & communities** who want a private group of their own, hosted on a
-  home computer.
-- 🏢 **Companies** who want internal chat that never leaves their infrastructure — flip
-  two switches for a **sealed, invite-only network** with no messages in or out.
-- 🏛️ **Organizations & governments** who need a self-contained, auditable system they
+- **Families and communities** who want a private group of their own, hosted on a home
+  computer.
+- **Companies** who want internal chat that never leaves their infrastructure — flip
+  two switches for a sealed, invite-only network with no messages in or out.
+- **Organizations and governments** who need a self-contained, auditable system they
   can run air-gapped on a private network. (We're [honest](#honest-about-security) about
   exactly what that does and doesn't guarantee.)
 
@@ -69,8 +68,8 @@ conversations sync across all of them.
 
 1. **Make an account in seconds** — the app generates your key and shows you 12 backup
    words. No sign-up form.
-2. **Share an invite link or QR** — the person who opens it can message you. Discovery
-   rides in the invite; there's no central directory.
+2. **Share an invite link or QR** — whoever opens it can message you. Discovery rides in
+   the invite; there's no central directory.
 3. **Point at a server you trust** — the one your family or company runs. Visiting its
    URL just works; messages relay through it, sealed, and land on your devices.
 
@@ -84,7 +83,7 @@ docker build -t pochta-relay .
 docker run -p 4000:4000 -v pochta-data:/data \
   -e SECRET_KEY_BASE=$(openssl rand -base64 48) \
   pochta-relay
-# → open http://localhost:4000 and you're running your own messenger.
+# open http://localhost:4000 and you're running your own messenger.
 ```
 
 Want a **private, invite-only network** for a company or org? Same image, three env
@@ -96,36 +95,33 @@ docker run -p 4000:4000 -v pochta-data:/data \
   -e MEMBERSHIP_MODE=invite -e FEDERATION_MODE=closed \
   -e ADMIN_TOKEN=$(openssl rand -hex 16) \
   pochta-relay
-# → open http://your-host/admin, sign in, and invite people from a friendly web panel.
+# open http://your-host/admin, sign in, and invite people from a friendly web panel.
 ```
 
 Runs on **Windows, macOS, or Linux**. Put a TLS proxy (Caddy/nginx) in front for
 anything beyond localhost. Relays can also **federate** — different self-hosted Pochta
-servers can reach each other, signed and origin-verified, so separate "islands" become
-a network without any central authority.
-
-> Full self-hosting, air-gap, and admin docs: **[deployment guide →](#self-hosting)** ·
-> More packaging (double-click desktop installers) is on the [roadmap](ROADMAP.md).
+servers reach each other, signed and origin-verified, so separate islands become a
+network without any central authority.
 
 ## <a id="honest-about-security"></a>Honest about security
 
-Trust comes from being straight about the limits — so here they are:
+Trust comes from being straight about the limits, so here they are:
 
-- ✅ **Content is end-to-end encrypted** (Ed25519 + X25519 + XChaCha20-Poly1305, via
+- **Content is end-to-end encrypted** (Ed25519 + X25519 + XChaCha20-Poly1305, via
   audited libraries). The relay holds only ciphertext.
-- ✅ **Self-contained & auditable** — open source, no required external calls, you own
+- **Self-contained and auditable** — open source, no required external calls, you own
   every component.
-- ⚠️ **The server operator sees metadata** — who talks to whom, when, and message sizes.
-  When *you* are the operator (your family/company/org box), that's your own server — but
+- **The server operator sees metadata** — who talks to whom, when, and message sizes.
+  When *you* are the operator (your family/company/org box), that's your own server, but
   it is not anonymity *from* the operator.
-- ⚠️ **"100% secure" is not a real claim.** A stolen device or lost passphrase is out of
+- **"100% secure" is not a real claim.** A stolen device or lost passphrase is out of
   our hands, and formal certification (FIPS, Common Criteria) is a process beyond the
   code. The architecture *supports* a hardened deployment; the paperwork is separate work.
 
 ## For developers
 
-Pochta's client is a real, reusable SDK — **[`@pochta-chat/sdk`](https://www.npmjs.com/package/@pochta-chat/sdk)**
-— so you can build your *own* app (mobile, desktop, a bot) on the same E2E core, or run
+Pochta's client is a real, reusable SDK — **[`@pochta-chat/sdk`](https://www.npmjs.com/package/@pochta-chat/sdk)** —
+so you can build your *own* app (mobile, desktop, a bot) on the same E2E core, or run
 your backend behind a different frontend entirely. It ships no UI and no database; you
 inject those.
 
@@ -133,10 +129,9 @@ inject those.
 npm i @pochta-chat/sdk
 ```
 
-- 📦 **SDK** — identity, sign-then-seal crypto, transport, all message ops → [`packages/sdk`](packages/sdk)
-- 📜 **Protocol** — the full wire contract, to build any client → [PROTOCOL.md](PROTOCOL.md)
-- 🏗️ **Architecture** — how the relay + engine + storage fit → [ARCHITECTURE.md](ARCHITECTURE.md)
-- 🗺️ **Roadmap** — what's done and what's next → [ROADMAP.md](ROADMAP.md)
+- **SDK** — identity, sign-then-seal crypto, transport, all message ops → [`packages/sdk`](packages/sdk)
+- **Protocol** — the full wire contract, to build any client → [PROTOCOL.md](PROTOCOL.md)
+- **Architecture** — how the relay, engine, and storage fit → [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ### Develop locally
 
@@ -152,14 +147,14 @@ Open two browsers, create an account in each, share the invite link, and chat.
 ## Status
 
 **Working today, all automated-tested:** self-owned identity · E2E messaging · contacts
-& on-device encrypted history · reliable offline delivery + multi-device sync · receipts
-& typing · presence · edit / delete / reactions / replies · images, voice notes & files ·
-1:1 voice/video calls · self-hosting (one-command Docker) · signed relay-to-relay
-federation · private/guarded (org/gov) modes · a friendly admin web panel.
+and on-device encrypted history · reliable offline delivery and multi-device sync ·
+receipts and typing · presence · edit / delete / reactions / replies · images, voice
+notes and files · 1:1 voice/video calls · one-command self-hosting · signed
+relay-to-relay federation · private/guarded (org/gov) modes · a friendly admin web panel.
 
-**On the roadmap:** double-click desktop installers (Tauri/Burrito) · native mobile apps
-+ push · per-device keys & forward secrecy · group chat · TURN for tricky networks ·
-human-friendly `@handles`. See [ROADMAP.md](ROADMAP.md).
+**Planned:** double-click desktop installers · native mobile apps and push · per-device
+keys and forward secrecy · group chat · TURN for tricky networks · human-friendly
+`@handles`.
 
 ---
 
@@ -175,7 +170,7 @@ self-contained `mix release` (prod — no Elixir/Node needed to run it).
 cd apps/server && MIX_ENV=prod mix release
 SECRET_KEY_BASE=$(mix phx.gen.secret) PHX_SERVER=true PORT=4000 \
   PHX_HOST=chat.example.com DATABASE_PATH=/data/chat.db \
-  _build/prod/rel/signaling/bin/signaling start
+  _build/prod/rel/pochta/bin/pochta start
 # put a TLS reverse proxy (Caddy/nginx) in front — WebRTC/media need HTTPS off-localhost
 ```
 
@@ -208,7 +203,7 @@ members, and allow/revoke federated peers. Disabled entirely when no token is se
 mix relay.token                     # mint a one-time join token
 mix relay.members [add|remove <pubkey>]
 mix relay.peers   [allow <origin>|revoke <pubkey>]
-# release equivalents: bin/signaling rpc "Signaling.Admin.mint_token()"
+# release equivalents: bin/pochta rpc "Pochta.Admin.mint_token()"
 ```
 </details>
 

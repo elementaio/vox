@@ -163,8 +163,8 @@ No per-user authz on the blob (relies on the unguessable id + E2E of the key).
 A client never speaks federation — it just includes the `relay` hint. Relays
 forward remote-addressed envelopes to each other over signed HTTP
 (`POST /federation/push`, Ed25519-signed, origin-bound, policy-gated, retried).
-See the README/ROADMAP for the operator-facing detail; content stays E2E
-throughout (the relays only move sealed envelopes).
+See the README and ARCHITECTURE.md for the operator-facing detail; content stays
+E2E throughout (the relays only move sealed envelopes).
 
 ## 9. Versioning
 

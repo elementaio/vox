@@ -68,7 +68,7 @@ WORKDIR /app
 
 # Persistent data: SQLite delivery buffer + the relay's Ed25519 identity key.
 RUN mkdir -p /data && chown nobody:nogroup /data
-COPY --from=build --chown=nobody:nogroup /app/_build/prod/rel/signaling ./
+COPY --from=build --chown=nobody:nogroup /app/_build/prod/rel/pochta ./
 
 USER nobody
 # Sensible self-host defaults; override any at `docker run -e ...`.
@@ -78,4 +78,4 @@ ENV PHX_SERVER=true \
     RELAY_KEY_PATH=/data/relay_identity.key
 EXPOSE 4000
 VOLUME /data
-CMD ["/app/bin/signaling", "start"]
+CMD ["/app/bin/pochta", "start"]

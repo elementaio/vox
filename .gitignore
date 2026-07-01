@@ -28,3 +28,6 @@ plan/
 # Relay federation signing key
 apps/server/*.key
 apps/server/relay_identity.key
+
+# Internal planning (kept local, not published — lists current weaknesses)
+ROADMAP.md

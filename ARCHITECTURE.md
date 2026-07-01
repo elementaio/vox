@@ -1,9 +1,8 @@
 # Pochta — architecture & design
 
-Technical deep-dive (the README is the product overview). Companion docs:
-[PROTOCOL.md](PROTOCOL.md) (wire contract) and [ROADMAP.md](ROADMAP.md) (phase
-history + what's next). This doc is written to double as an LLM context document —
-paste it in and you can reason about the system.
+Technical deep-dive (the README is the product overview). Companion doc:
+[PROTOCOL.md](PROTOCOL.md) (the client/relay wire contract). This doc is written to
+double as an LLM context document — paste it in and you can reason about the system.
 
 ## Tech stack
 
@@ -78,20 +77,17 @@ apps/web/src/
     server.ts       relay URL selection (self-host)  ·  invite.ts / enroll.ts wrap SDK with httpBase()
   Welcome.tsx Unlock.tsx Messenger.tsx App.tsx AdminPanel.tsx   UI
 apps/server/lib/
-  signaling_web/channels/user_socket.ex     signature auth
-  signaling_web/channels/inbox_channel.ex   the mailbox (+ call signaling)
-  signaling_web/engine_transport.ex         engine → channel bridge
-  signaling_web/controllers/*.ex            blobs, config, federation, membership, admin, page
-  signaling/ports/db/*.ex                   Ecto port adapters (SQLite/PG)
-  signaling/federation*.ex                  signed relay-to-relay forwarding + policy
-  signaling/membership.ex, admin.ex         guarded membership + admin facade
-  signaling/retention.ex                    delivery-buffer GC
-  signaling/release.ex                      schema migrations + boot
-  vendor/chat_engine                        the messaging engine (vendored)
+  pochta_web/channels/user_socket.ex     signature auth
+  pochta_web/channels/inbox_channel.ex   the mailbox (+ call signaling)
+  pochta_web/engine_transport.ex         engine → channel bridge
+  pochta_web/controllers/*.ex            blobs, config, federation, membership, admin, page
+  pochta/ports/db/*.ex                   Ecto port adapters (SQLite/PG)
+  pochta/federation*.ex                  signed relay-to-relay forwarding + policy
+  pochta/membership.ex, admin.ex         guarded membership + admin facade
+  pochta/retention.ex                    delivery-buffer GC
+  pochta/release.ex                      schema migrations + boot
+  vendor/chat_engine                     the messaging engine (vendored)
 ```
-
-*(The Elixir app/modules are still named `signaling` internally — a `pochta`
-rename is a pending mechanical follow-up.)*
 
 ## Key design decisions (the "why")
 
@@ -128,5 +124,6 @@ integrating it:
 - **Big one (future):** untrusted-node federation for the volunteer-relay vision —
   a major feature, not a fix.
 
-See [ROADMAP.md](ROADMAP.md) for the full backlog (per-device keys, group chat,
-TURN, forward secrecy, volunteer mesh, @handles, mobile).
+Larger items on the horizon: per-device keys, group chat (sender-keys/MLS + SFU),
+TURN for strict NATs, forward secrecy (Double Ratchet), the untrusted volunteer-node
+mesh, human-friendly `@handles`, and native mobile apps.
