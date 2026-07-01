@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { TFunction } from "i18next";
 import { QRCodeSVG } from "qrcode.react";
 import { Client, type CallState, type PresenceInfo } from "./lib/client";
 import {
@@ -16,6 +17,7 @@ import { clearIdentity, type Identity } from "./lib/identity";
 import { inviteLink, parseInvite } from "./lib/invite";
 import { serverLabel, setServer, socketUrl } from "./lib/server";
 import { enroll } from "./lib/enroll";
+import { useLocales } from "./locales";
 
 interface Preview {
   text: string;
@@ -30,6 +32,7 @@ export default function Messenger({
   identity: Identity;
   onSignOut: () => void;
 }) {
+  const { t, toggle } = useLocales();
   const [status, setStatus] = useState("connecting…");
   const [contacts, setContacts] = useState<StoredContact[]>([]);
   const [active, setActive] = useState<string | null>(null);
@@ -62,6 +65,8 @@ export default function Messenger({
   const iTyping = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const tRef = useRef(t);
+  tRef.current = t;
 
   activeRef.current = active;
 
@@ -71,7 +76,7 @@ export default function Messenger({
     (async () => {
       const stored = await getContacts();
       setContacts(stored);
-      setPreviews(await loadPreviews(stored));
+      setPreviews(await loadPreviews(tRef.current, stored));
 
       client = new Client(socketUrl(), identity, {
         onStatus: setStatus,
@@ -84,7 +89,7 @@ export default function Messenger({
         onMessage: (contact, msg) => {
           setPreviews((prev) => ({
             ...prev,
-            [contact]: { text: previewText(msg), ts: msg.ts, mine: msg.mine },
+            [contact]: { text: previewText(tRef.current, msg), ts: msg.ts, mine: msg.mine },
           }));
           if (activeRef.current === contact) {
             setMessages((prev) =>
@@ -100,7 +105,11 @@ export default function Messenger({
           }
           setPreviews((prev) => ({
             ...prev,
-            [contact]: { text: msg.deleted ? "🚫 deleted" : msg.text, ts: msg.ts, mine: msg.mine },
+            [contact]: {
+              text: msg.deleted ? tRef.current("chat.deletedShort") : msg.text,
+              ts: msg.ts,
+              mine: msg.mine,
+            },
           }));
         },
         onMessageRemoved: (contact, id) => {
@@ -247,7 +256,7 @@ export default function Messenger({
 
   function editMsg(m: StoredMessage) {
     if (!active) return;
-    const next = prompt("Edit message:", m.text);
+    const next = prompt(t("prompts.editMessage"), m.text);
     if (next != null && next.trim() && next.trim() !== m.text) {
       void clientRef.current?.editText(active, m.id, next.trim());
     }
@@ -256,10 +265,10 @@ export default function Messenger({
   function delMsg(m: StoredMessage) {
     if (!active) return;
     if (m.mine) {
-      if (confirm("Delete this message for everyone?")) {
+      if (confirm(t("prompts.deleteForEveryone"))) {
         void clientRef.current?.deleteForEveryone(active, m.id);
       }
-    } else if (confirm("Delete this message for you?")) {
+    } else if (confirm(t("prompts.deleteForYou"))) {
       void clientRef.current?.deleteForMe(active, m.id);
     }
   }
@@ -293,23 +302,20 @@ export default function Messenger({
   }
 
   async function joinNetwork() {
-    const token = prompt("Join token (from your relay's admin):");
+    const token = prompt(t("prompts.joinTokenPrompt"));
     if (!token) return;
     const okd = await enroll(identity, token.trim());
     if (okd) {
-      alert("Enrolled — reconnecting…");
+      alert(t("prompts.enrolled"));
       location.reload();
     } else {
-      alert("Enrollment failed (invalid or already-used token).");
+      alert(t("prompts.enrollFailed"));
     }
   }
 
   function changeServer() {
     const cur = serverLabel();
-    const next = prompt(
-      "Relay server — e.g. wss://chat.myfamily.com (leave blank to use this site):",
-      cur === "this site" ? "" : cur,
-    );
+    const next = prompt(t("prompts.relayPrompt"), cur === "this site" ? "" : cur);
     if (next !== null) {
       setServer(next);
       location.reload();
@@ -317,11 +323,7 @@ export default function Messenger({
   }
 
   function signOut() {
-    if (
-      confirm(
-        "Sign out removes this account and its history from this device. You can only restore it with your 12-word phrase. Continue?",
-      )
-    ) {
+    if (confirm(t("prompts.signOutConfirm"))) {
       clearIdentity();
       void clearAll();
       onSignOut();
@@ -344,16 +346,16 @@ export default function Messenger({
             </div>
           </div>
           <button className="link" onClick={() => setShowInvite((s) => !s)}>
-            + Invite
+            {t("chat.invite")}
           </button>
         </div>
 
         {showInvite && (
           <div className="invite-panel">
-            <p>Share this link so someone can add you:</p>
+            <p>{t("chat.shareLink")}</p>
             <div className="invite-row">
               <input readOnly value={link} onFocus={(e) => e.target.select()} />
-              <button onClick={() => navigator.clipboard.writeText(link)}>Copy</button>
+              <button onClick={() => navigator.clipboard.writeText(link)}>{t("chat.copy")}</button>
             </div>
             <div className="qr">
               <QRCodeSVG value={link} size={128} bgColor="#171a21" fgColor="#e6e9ef" />
@@ -363,14 +365,14 @@ export default function Messenger({
 
         <input
           className="search"
-          placeholder="Search messages…"
+          placeholder={t("chat.searchMessages")}
           value={query}
           onChange={(e) => onSearch(e.target.value)}
         />
 
         {query && (
           <div className="contact-list">
-            {results.length === 0 && <div className="empty-list">No matches.</div>}
+            {results.length === 0 && <div className="empty-list">{t("chat.noMatches")}</div>}
             {results.map((m) => (
               <button
                 key={m.id}
@@ -401,9 +403,9 @@ export default function Messenger({
         <div className="contact-list">
           {contacts.length === 0 && (
             <div className="empty-list">
-              No contacts yet.
+              {t("chat.noContactsYet")}
               <br />
-              Tap <b>+ Invite</b> and share your link.
+              {t("chat.tapInviteShare")}
             </div>
           )}
           {contacts.map((c) => (
@@ -426,10 +428,10 @@ export default function Messenger({
                 <div className="contact-sub">
                   <span className="preview">
                     {typing[c.pubkey]
-                      ? "typing…"
+                      ? t("chat.typing")
                       : previews[c.pubkey]
-                        ? (previews[c.pubkey].mine ? "You: " : "") + previews[c.pubkey].text
-                        : "Say hello 👋"}
+                        ? (previews[c.pubkey].mine ? t("chat.youPrefix") : "") + previews[c.pubkey].text
+                        : t("chat.sayHello")}
                   </span>
                   {unread[c.pubkey] > 0 && <span className="badge">{unread[c.pubkey]}</span>}
                 </div>
@@ -440,14 +442,17 @@ export default function Messenger({
         )}
 
         <div className="sidebar-footer">
-          <button className="link server" onClick={changeServer} title="Change relay server">
+          <button className="link server" onClick={changeServer} title={t("chat.changeRelay")}>
             🖧 {serverLabel()}
           </button>
-          <button className="link" onClick={joinNetwork} title="Redeem a join token">
-            Join private network…
+          <button className="link" onClick={joinNetwork} title={t("chat.redeemToken")}>
+            {t("chat.joinPrivate")}
+          </button>
+          <button className="link lang" onClick={toggle}>
+            {t("settings.toggleLanguage")}
           </button>
           <button className="link signout" onClick={signOut}>
-            Sign out
+            {t("chat.signOut")}
           </button>
         </div>
       </aside>
@@ -457,10 +462,8 @@ export default function Messenger({
           <div className="no-convo">
             <div>
               <h2>🔒 {identity.name}</h2>
-              <p>Select a contact, or share your invite link to start a chat.</p>
-              <p className="muted">
-                Messages are end-to-end encrypted and stored only on your devices.
-              </p>
+              <p>{t("chat.selectContact")}</p>
+              <p className="muted">{t("chat.e2eNote")}</p>
             </div>
           </div>
         ) : (
@@ -469,17 +472,17 @@ export default function Messenger({
               <div className="avatar">{activeContact.name.slice(0, 1).toUpperCase()}</div>
               <div>
                 <div className="convo-name">{activeContact.name}</div>
-                <div className="convo-sub">{presenceText(presence[activeContact.pubkey])}</div>
+                <div className="convo-sub">{presenceText(t, presence[activeContact.pubkey])}</div>
               </div>
               <div className="call-buttons">
                 <button
-                  title="Voice call"
+                  title={t("chat.voiceCall")}
                   onClick={() => clientRef.current?.startCall(activeContact.pubkey, false)}
                 >
                   📞
                 </button>
                 <button
-                  title="Video call"
+                  title={t("chat.videoCall")}
                   onClick={() => clientRef.current?.startCall(activeContact.pubkey, true)}
                 >
                   🎥
@@ -489,25 +492,23 @@ export default function Messenger({
 
             <div className="messages">
               {messages.length === 0 && (
-                <div className="empty">
-                  No messages yet with {activeContact.name}.
-                </div>
+                <div className="empty">{t("chat.noMessagesYet", { name: activeContact.name })}</div>
               )}
               {messages.map((m) => (
                 <div key={m.id} className={`msg ${m.mine ? "me" : "them"}`}>
                   {m.deleted ? (
-                    <span className="text tombstone">🚫 This message was deleted</span>
+                    <span className="text tombstone">{t("chat.messageDeleted")}</span>
                   ) : (
                     <>
                       {m.replyTo && (
                         <div className="msg-quote">
-                          {quoteText(messages.find((x) => x.id === m.replyTo))}
+                          {quoteText(t, messages.find((x) => x.id === m.replyTo))}
                         </div>
                       )}
                       {m.media && <MediaView media={m.media} client={clientRef.current} />}
                       {m.text && <span className="text">{m.text}</span>}
                       <span className="time">
-                        {m.edited && <span className="edited">edited</span>}
+                        {m.edited && <span className="edited">{t("chat.edited")}</span>}
                         {time(m.ts)}
                         {m.mine && <Ticks status={m.status} />}
                       </span>
@@ -522,20 +523,20 @@ export default function Messenger({
                       )}
                       <div className="msg-actions">
                         {["👍", "❤️", "😂"].map((e) => (
-                          <button key={e} title={`React ${e}`} onClick={() => react(m, e)}>
+                          <button key={e} title={t("chat.reactWith", { emoji: e })} onClick={() => react(m, e)}>
                             {e}
                           </button>
                         ))}
-                        <button title="Reply" onClick={() => setReplyingTo(m)}>
+                        <button title={t("chat.reply")} onClick={() => setReplyingTo(m)}>
                           ↩
                         </button>
                         {m.mine && (
-                          <button title="Edit" onClick={() => editMsg(m)}>
+                          <button title={t("chat.edit")} onClick={() => editMsg(m)}>
                             ✎
                           </button>
                         )}
                         <button
-                          title={m.mine ? "Delete" : "Delete for me"}
+                          title={m.mine ? t("chat.delete") : t("chat.deleteForMe")}
                           onClick={() => delMsg(m)}
                         >
                           🗑
@@ -552,10 +553,12 @@ export default function Messenger({
               <div className="reply-bar">
                 <div className="reply-quote">
                   <span className="reply-to">
-                    Replying to {replyingTo.mine ? "yourself" : activeContact.name}
+                    {t("chat.replyingTo", {
+                      who: replyingTo.mine ? t("chat.yourself") : activeContact.name,
+                    })}
                   </span>
                   <span className="reply-text">
-                    {replyingTo.deleted ? "deleted message" : replyingTo.text}
+                    {replyingTo.deleted ? t("chat.deletedMessage") : replyingTo.text}
                   </span>
                 </div>
                 <button onClick={() => setReplyingTo(null)}>×</button>
@@ -563,7 +566,7 @@ export default function Messenger({
             )}
 
             <div className="typing-line">
-              {typing[activeContact.pubkey] ? `${activeContact.name} is typing…` : ""}
+              {typing[activeContact.pubkey] ? t("chat.isTyping", { name: activeContact.name }) : ""}
             </div>
 
             <input
@@ -576,7 +579,7 @@ export default function Messenger({
               <button
                 type="button"
                 className="attach"
-                title="Attach image"
+                title={t("chat.attachImage")}
                 onClick={() => fileInputRef.current?.click()}
               >
                 📎
@@ -584,7 +587,7 @@ export default function Messenger({
               <button
                 type="button"
                 className={`mic ${recording ? "recording" : ""}`}
-                title={recording ? "Stop & send" : "Record voice note"}
+                title={recording ? t("chat.stopSend") : t("chat.recordVoice")}
                 onClick={() => (recording ? stopRecording() : startRecording())}
               >
                 {recording ? "⏹" : "🎤"}
@@ -592,12 +595,12 @@ export default function Messenger({
               <input
                 value={draft}
                 onChange={(e) => onDraft(e.target.value)}
-                placeholder={recording ? "● recording… tap ⏹ to send" : "Type a message…"}
+                placeholder={recording ? t("chat.recordingHint") : t("chat.typeMessage")}
                 disabled={recording}
                 autoFocus
               />
               <button type="submit" disabled={!draft.trim()}>
-                Send
+                {t("chat.send")}
               </button>
             </form>
           </>
@@ -609,14 +612,14 @@ export default function Messenger({
           <div className="avatar big">{incoming.name.slice(0, 1).toUpperCase()}</div>
           <div className="call-toast-name">{incoming.name}</div>
           <div className="call-toast-sub">
-            Incoming {incoming.video ? "video" : "voice"} call…
+            {t("chat.incomingCall", { kind: incoming.video ? t("chat.video") : t("chat.voice") })}
           </div>
           <div className="call-toast-actions">
             <button className="decline" onClick={() => clientRef.current?.declineCall(incoming.callId)}>
-              Decline
+              {t("chat.decline")}
             </button>
             <button className="accept" onClick={() => clientRef.current?.acceptCall(incoming.callId)}>
-              Accept
+              {t("chat.accept")}
             </button>
           </div>
         </div>
@@ -629,13 +632,13 @@ export default function Messenger({
               <CallVideo stream={remoteStream} className="remote" />
             ) : (
               <div className="call-waiting">
-                {callState === "calling" ? `Calling ${callName}…` : `Connecting…`}
+                {callState === "calling" ? t("chat.calling", { name: callName }) : t("chat.connecting")}
               </div>
             )}
             {localStream && <CallVideo stream={localStream} className="local" muted />}
           </div>
           <button className="hangup" onClick={() => clientRef.current?.hangup()}>
-            ✕ End call
+            {t("chat.endCall")}
           </button>
         </div>
       )}
@@ -665,11 +668,14 @@ function Ticks({ status }: { status?: MessageStatus }) {
   return <span className="tick">✓</span>;
 }
 
-async function loadPreviews(contacts: StoredContact[]): Promise<Record<string, Preview>> {
+async function loadPreviews(
+  t: TFunction,
+  contacts: StoredContact[],
+): Promise<Record<string, Preview>> {
   const entries = await Promise.all(
     contacts.map(async (c) => {
       const m = await lastMessage(c.pubkey);
-      return m ? ([c.pubkey, { text: m.text, ts: m.ts, mine: m.mine }] as const) : null;
+      return m ? ([c.pubkey, { text: previewText(t, m), ts: m.ts, mine: m.mine }] as const) : null;
     }),
   );
   return Object.fromEntries(entries.filter(Boolean) as [string, Preview][]);
@@ -678,21 +684,21 @@ async function loadPreviews(contacts: StoredContact[]): Promise<Record<string, P
 const time = (ts: number) =>
   new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-function quoteText(q?: StoredMessage): string {
-  if (!q) return "message";
-  if (q.deleted) return "deleted message";
-  return q.media ? mediaLabel(q.media.mkind, q.media.name) : q.text;
+function quoteText(t: TFunction, q?: StoredMessage): string {
+  if (!q) return t("chat.quoteMessage");
+  if (q.deleted) return t("chat.deletedMessage");
+  return q.media ? mediaLabel(t, q.media.mkind, q.media.name) : q.text;
 }
 
-function mediaLabel(mk: MediaRef["mkind"], name?: string): string {
-  if (mk === "image") return "📷 Photo";
-  if (mk === "audio") return "🎤 Voice";
-  return `📎 ${name || "File"}`;
+function mediaLabel(t: TFunction, mk: MediaRef["mkind"], name?: string): string {
+  if (mk === "image") return t("chat.photo");
+  if (mk === "audio") return t("chat.voiceLabel");
+  return t("chat.fileLabel", { name: name || t("chat.file") });
 }
 
-function previewText(m: StoredMessage): string {
-  if (m.deleted) return "🚫 deleted";
-  if (m.media) return mediaLabel(m.media.mkind, m.media.name);
+function previewText(t: TFunction, m: StoredMessage): string {
+  if (m.deleted) return t("chat.deletedShort");
+  if (m.media) return mediaLabel(t, m.media.mkind, m.media.name);
   return m.text;
 }
 
@@ -700,6 +706,7 @@ function previewText(m: StoredMessage): string {
 const mediaCache = new Map<string, string>();
 
 function MediaView({ media, client }: { media: MediaRef; client: Client | null }) {
+  const { t } = useLocales();
   const [url, setUrl] = useState<string | null>(mediaCache.get(media.blobId) ?? null);
   useEffect(() => {
     if (url || !client) return;
@@ -725,14 +732,14 @@ function MediaView({ media, client }: { media: MediaRef; client: Client | null }
     return url ? (
       <img className="media-img" src={url} alt="" />
     ) : (
-      <div className="media-loading">📷 loading…</div>
+      <div className="media-loading">{t("chat.loadingImg")}</div>
     );
   }
   if (media.mkind === "audio") {
     return url ? (
       <audio className="media-audio" controls src={url} />
     ) : (
-      <div className="media-loading">🎤 loading…</div>
+      <div className="media-loading">{t("chat.loadingAudio")}</div>
     );
   }
   // generic file → download link
@@ -741,23 +748,23 @@ function MediaView({ media, client }: { media: MediaRef; client: Client | null }
       📄 {media.name || "file"}
     </a>
   ) : (
-    <div className="media-loading">📎 loading…</div>
+    <div className="media-loading">{t("chat.loadingFile")}</div>
   );
 }
 
-function presenceText(info?: PresenceInfo): string {
+function presenceText(t: TFunction, info?: PresenceInfo): string {
   if (!info) return "";
-  if (info.online) return "online";
-  if (!info.lastSeen) return "offline";
-  return `last seen ${timeAgo(info.lastSeen)}`;
+  if (info.online) return t("chat.online");
+  if (!info.lastSeen) return t("chat.offline");
+  return t("chat.lastSeen", { ago: timeAgo(t, info.lastSeen) });
 }
 
-function timeAgo(ts: number): string {
+function timeAgo(t: TFunction, ts: number): string {
   const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
-  if (s < 60) return "just now";
+  if (s < 60) return t("chat.justNow");
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return t("chat.minutesAgo", { m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
+  if (h < 24) return t("chat.hoursAgo", { h });
   return new Date(ts).toLocaleDateString();
 }
