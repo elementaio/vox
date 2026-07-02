@@ -18,7 +18,7 @@ export function Hero({ dict }: { dict: Dictionary }) {
           <p className="lead">{h.subtitle}</p>
 
           <div className="hero-cta">
-            <a className="btn btn-primary btn-lg" href={LINKS.github} target="_blank" rel="noreferrer">
+            <a className="btn btn-primary btn-lg" href={LINKS.releases} target="_blank" rel="noreferrer">
               {h.ctaPrimary}
               <IconArrowRight className="arrow" width={18} height={18} />
             </a>

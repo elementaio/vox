@@ -5,6 +5,7 @@ export const LINKS = {
   site: SITE_URL,
   github: "https://github.com/qataruts/pochta",
   githubStars: "https://github.com/qataruts/pochta",
+  releases: "https://github.com/qataruts/pochta/releases", // download the desktop app
   npm: "https://www.npmjs.com/package/@pochta-chat/sdk",
   protocol: "https://github.com/qataruts/pochta/blob/main/PROTOCOL.md",
   architecture: "https://github.com/qataruts/pochta/blob/main/ARCHITECTURE.md",

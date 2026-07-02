@@ -22,9 +22,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13 # Intel
-            builder: --mac --x64
-            artifact: pochta-desktop-mac-intel
+          # NOTE: Intel-Mac (macos-13) is omitted — GitHub's Intel runners schedule
+          # unreliably and can hang a run forever, and the bundled Elixir relay is
+          # arch-specific (can't cross-build on arm64). Build the Intel .dmg on an
+          # Intel Mac locally (`cd apps/desktop && npm run dist`) and attach it, or
+          # re-add `{os: macos-13, builder: --mac --x64}` when a runner is available.
           - os: macos-14 # Apple Silicon
             builder: --mac --arm64
             artifact: pochta-desktop-mac-arm64

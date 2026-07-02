@@ -11,7 +11,7 @@ export function FinalCta({ dict }: { dict: Dictionary }) {
           <h2>{c.title}</h2>
           <p className="lead">{c.lead}</p>
           <div className="cta-actions">
-            <a className="btn btn-primary btn-lg" href={LINKS.github} target="_blank" rel="noreferrer">
+            <a className="btn btn-primary btn-lg" href={LINKS.releases} target="_blank" rel="noreferrer">
               {c.primary}
               <IconArrowRight className="arrow" width={18} height={18} />
             </a>
