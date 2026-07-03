@@ -57,6 +57,7 @@ interface RoomPeer {
   fwded: Set<string>; // origin pubkeys already relayed onto this peer's PC
   negotiating: boolean; // a (re)negotiation offer of mine is in flight
   renegPending: boolean; // more tracks were added while negotiating → renegotiate after
+  renegTimer: ReturnType<typeof setTimeout> | null; // debounce: coalesce a burst of addTrack into ONE offer
   polite: boolean; // perfect negotiation: on a glare, the polite peer yields
   makingOffer: boolean; // I'm mid-way creating an offer to this peer
 }
@@ -90,6 +91,10 @@ interface GroupCall {
 
 /** Above this many participants, a group call elects a forwarder instead of meshing. */
 const MESH_MAX = 4;
+// A forwarder waits this long after the first added track before offering, so a
+// burst of origins (a late joiner receiving everyone, or many people joining at
+// once) folds into a single SDP exchange rather than one round-trip per origin.
+const RENEG_COALESCE_MS = 80;
 
 const short = (id: string) => id.slice(0, 6);
 
@@ -638,6 +643,7 @@ export class Client {
     };
     room.peers.set(pk, {
       pubkey: pk, pc, fwded: new Set(), negotiating: false, renegPending: false,
+      renegTimer: null,
       polite: this.identity.publicKeyHex > pk, // higher pubkey yields on a glare
       makingOffer: false,
     });
@@ -708,7 +714,20 @@ export class Client {
     this.sealPeer(peer.pubkey, info.enc, info.relay, {
       t: "call-fwd", callId: room.callId, streamId: o.stream.id, from: origin, name: o.name,
     }, `fwd-${room.callId}-${peer.pubkey}-${origin}`, true);
-    void this.renegotiate(peer);
+    this.scheduleReneg(peer);
+  }
+
+  // Coalesce renegotiations: several origins added to a peer in the same tick (or
+  // within RENEG_COALESCE_MS) fold into ONE offer instead of a serial round-trip
+  // each. This is what makes a forwarder scale to tens of participants — a late
+  // joiner receives everyone in a single exchange, and a burst of simultaneous
+  // joins is batched per peer.
+  private scheduleReneg(peer: RoomPeer): void {
+    if (peer.renegTimer) return;
+    peer.renegTimer = setTimeout(() => {
+      peer.renegTimer = null;
+      void this.renegotiate(peer);
+    }, RENEG_COALESCE_MS);
   }
 
   /** Send a fresh offer to a peer (serialized so we never have two offers in flight). */
@@ -748,7 +767,9 @@ export class Client {
   private dropPeer(pk: string): void {
     const room = this.room;
     if (!room) return;
-    room.peers.get(pk)?.pc.close();
+    const dp = room.peers.get(pk);
+    if (dp?.renegTimer) clearTimeout(dp.renegTimer);
+    dp?.pc.close();
     room.peers.delete(pk);
     room.pendingIce.delete(pk);
     this.events.onPeerStream(pk, "", null);

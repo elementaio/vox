@@ -117,6 +117,7 @@ async function runScenario(browser, { label, n, forwarders: fwdCount, video = tr
       inMbps: +(((s.bytesIn - s1[i].bytesIn) * 8) / SAMPLE / 1000).toFixed(1),
       outMbps: +(((s.bytesOut - s1[i].bytesOut) * 8) / SAMPLE / 1000).toFixed(1),
       joinMs: s.joinMs,
+      phases: s.phases,
     };
   });
 
@@ -132,7 +133,8 @@ async function runScenario(browser, { label, n, forwarders: fwdCount, video = tr
 
   console.log(`\n━━ ${label}: n=${n} forwarders=${fwdCount} ${ok ? '✓ all media flowing' : '✗ INCOMPLETE'}`);
   for (const r of rows) {
-    console.log(`   ${r.name.padEnd(4)} pcs=${String(r.pcs).padStart(2)} peers=${String(r.peers).padStart(2)} fps/stream=${String(r.fpsPerStream).padStart(5)} in=${r.inMbps}Mbps out=${r.outMbps}Mbps join=${r.joinMs ?? '—'}ms`);
+    const ph = r.phases;
+    console.log(`   ${r.name.padEnd(4)} peers=${String(r.peers).padStart(2)} fps=${String(r.fpsPerStream).padStart(5)} out=${r.outMbps}Mbps  | sock=${ph.loadToSocket}ms ring=${ph.startToRing}ms firstMedia=${ph.ringToFirst}ms allMedia=${ph.firstToAll}ms`);
   }
   if (!ok) {
     for (let i = 0; i < pages.length; i++) {

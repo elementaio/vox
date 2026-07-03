@@ -28,6 +28,7 @@ import * as sdk from '../../packages/sdk/src/index.ts';
     callState: 'idle', incoming: null, accepted: false,
     peerStreams: new Map(),           // pubkey -> has live stream
     events: [],
+    pageLoadAt: Date.now(), socketAt: 0, ringAt: 0,
     joinStartedAt: 0, connectedAt: 0, firstStreamAt: 0, allStreamsAt: 0,
     expectedPeers: 0,
   };
@@ -39,11 +40,12 @@ import * as sdk from '../../packages/sdk/src/index.ts';
       state.name = name;
       state.identity = sdk.createIdentity();
       const events = {
-        onStatus: (s) => log(`status:${s}`),
+        onStatus: (s) => { if (s === 'connected' && !state.socketAt) state.socketAt = Date.now(); log(`status:${s}`); },
         onMessage() {}, onMessageUpdated() {}, onMessageRemoved() {},
         onReceipt() {}, onTyping() {}, onContact() {}, onPresence() {},
         onIncomingCall: (contact, cname, callId, video) => {
           log(`incoming:${callId}`);
+          if (!state.ringAt) state.ringAt = Date.now();
           state.incoming = { callId };
           // Auto-accept the ring.
           state.client.acceptCall(callId).then(() => { state.accepted = true; log('accepted'); })
@@ -119,6 +121,12 @@ import * as sdk from '../../packages/sdk/src/index.ts';
         peersWithStream: state.peerStreams.size,
         inboundVideo, framesDecoded, framesEncoded, bytesIn, bytesOut,
         joinMs: state.allStreamsAt && state.joinStartedAt ? state.allStreamsAt - state.joinStartedAt : null,
+        phases: {
+          loadToSocket: state.socketAt ? state.socketAt - state.pageLoadAt : null,
+          startToRing: state.ringAt && state.joinStartedAt ? state.ringAt - state.joinStartedAt : null,
+          ringToFirst: state.firstStreamAt && state.ringAt ? state.firstStreamAt - state.ringAt : null,
+          firstToAll: state.allStreamsAt && state.firstStreamAt ? state.allStreamsAt - state.firstStreamAt : null,
+        },
         events: state.events.slice(-8),
       };
     },
