@@ -715,7 +715,11 @@ export class Client {
   private async renegotiate(peer: RoomPeer): Promise<void> {
     const room = this.room;
     if (!room) return;
-    if (peer.negotiating) {
+    // Defer if a negotiation of ours is already in flight OR the connection is
+    // mid-inbound-offer (`have-remote-offer`): calling setLocalDescription(offer)
+    // then is an illegal-state crash. Only offer from a `stable` connection —
+    // the missing half of perfect negotiation on the multi-forwarder path.
+    if (peer.negotiating || peer.pc.signalingState !== "stable") {
       peer.renegPending = true;
       return;
     }
