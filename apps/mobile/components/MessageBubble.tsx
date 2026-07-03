@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import type { StoredMessage } from "@elementaio/vox-sdk";
-import { colors, radius } from "../constants/theme";
+import { colors } from "../constants/theme";
 import { useLocales } from "../locales";
 
 export function MessageBubble({ msg }: { msg: StoredMessage }) {
@@ -13,8 +13,8 @@ export function MessageBubble({ msg }: { msg: StoredMessage }) {
 }
 
 const s = StyleSheet.create({
-  bubble: { maxWidth: "80%", padding: 10, borderRadius: radius.md },
-  mine: { alignSelf: "flex-end", backgroundColor: colors.accent },
-  theirs: { alignSelf: "flex-start", backgroundColor: colors.panel },
-  text: { color: "#fff", fontSize: 15 },
+  bubble: { maxWidth: "80%", paddingVertical: 9, paddingHorizontal: 13, borderRadius: 18, marginVertical: 2 },
+  mine: { alignSelf: "flex-end", backgroundColor: colors.sent, borderBottomRightRadius: 5 },
+  theirs: { alignSelf: "flex-start", backgroundColor: colors.recv, borderBottomLeftRadius: 5 },
+  text: { color: "#fff", fontSize: 15, lineHeight: 20 },
 });

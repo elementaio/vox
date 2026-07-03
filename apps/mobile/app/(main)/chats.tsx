@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text as RNText, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { parseInvite } from "@elementaio/vox-sdk";
-import { Button, Centered, ContactRow, Input, Link, Screen, Text } from "../../components";
+import { Brand, Button, Centered, ContactRow, Input, Link, Screen, Text } from "../../components";
 import { useLocales } from "../../locales";
 import { useAuth, useMessenger } from "../../contexts";
 import { colors, radius, space } from "../../constants/theme";
@@ -30,7 +30,7 @@ export default function Chats() {
     return (
       <Screen>
         <Centered>
-          <Text variant="brand">📮 Vox</Text>
+          <Brand size={44} />
           <Text variant="title">{t("chat.connectRelay")}</Text>
           <Text variant="muted">{t("chat.relayHint")}</Text>
           <Input
@@ -91,8 +91,8 @@ const s = StyleSheet.create({
   bar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: space.md, borderBottomWidth: 1, borderBottomColor: colors.line },
   title: { color: "#fff", fontSize: 20, fontWeight: "700" },
   status: { color: colors.muted, fontSize: 12 },
-  addRow: { flexDirection: "row", gap: space.sm, padding: space.md },
-  input: { flex: 1, backgroundColor: colors.panel, color: colors.text, borderRadius: radius.md, padding: 12, borderWidth: 1, borderColor: colors.line },
-  addBtn: { backgroundColor: colors.accent, borderRadius: radius.md, paddingHorizontal: 18, justifyContent: "center" },
+  addRow: { flexDirection: "row", gap: space.sm, padding: space.md, alignItems: "center" },
+  input: { flex: 1, backgroundColor: colors.inset, color: colors.text, borderRadius: radius.full, paddingVertical: 11, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.line },
+  addBtn: { backgroundColor: colors.accent, borderRadius: radius.full, paddingHorizontal: 20, height: 44, justifyContent: "center" },
   addText: { color: "#fff", fontWeight: "700" },
 });

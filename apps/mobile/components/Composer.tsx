@@ -31,8 +31,8 @@ export function Composer({ onSend }: { onSend: (text: string) => void }) {
 }
 
 const s = StyleSheet.create({
-  row: { flexDirection: "row", gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: colors.line },
-  input: { flex: 1, backgroundColor: colors.panel, color: colors.text, borderRadius: radius.md, padding: 12, borderWidth: 1, borderColor: colors.line },
-  btn: { backgroundColor: colors.accent, borderRadius: radius.md, paddingHorizontal: 18, justifyContent: "center" },
+  row: { flexDirection: "row", gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: colors.line, alignItems: "center" },
+  input: { flex: 1, backgroundColor: colors.inset, color: colors.text, borderRadius: radius.full, paddingVertical: 11, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.line },
+  btn: { backgroundColor: colors.accent, borderRadius: radius.full, paddingHorizontal: 20, height: 44, justifyContent: "center" },
   btnText: { color: "#fff", fontWeight: "700" },
 });

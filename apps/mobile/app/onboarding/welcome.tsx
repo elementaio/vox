@@ -2,7 +2,7 @@ import { useState } from "react";
 import { StyleSheet, Text as RNText } from "react-native";
 import { router } from "expo-router";
 import { createIdentity, restoreIdentity, type Identity } from "@elementaio/vox-sdk";
-import { Button, Centered, Input, Link, Screen, Text } from "../../components";
+import { Brand, Button, Centered, Input, Link, Screen, Text } from "../../components";
 import { useLocales } from "../../locales";
 import { useAuth } from "../../contexts";
 import { colors, radius, space } from "../../constants/theme";
@@ -43,7 +43,7 @@ export default function Welcome() {
   return (
     <Screen>
       <Centered>
-        <Text variant="brand">📮 Vox</Text>
+        <Brand size={48} />
         <Text variant="sub">{t("onboarding.tagline")}</Text>
 
         {mode === "choose" && (
@@ -97,12 +97,14 @@ export default function Welcome() {
 
 const s = StyleSheet.create({
   mnemonic: {
-    color: colors.accent2,
+    color: colors.text,
     fontSize: 16,
     lineHeight: 26,
-    backgroundColor: colors.panel,
+    backgroundColor: colors.inset,
     padding: space.lg,
     borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
     textAlign: "center",
   },
 });

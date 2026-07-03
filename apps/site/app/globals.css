@@ -21,11 +21,11 @@
   --text-muted: #55607a;
   --text-faint: #8892a8;
 
-  /* brand — a confident blue (the app accent, refined) */
+  /* brand — the app accent, matched exactly for one consistent Vox blue */
   --brand: #4f8cff;
   --brand-2: #6ea0ff;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+  --primary: #2f6fe6;
+  --primary-hover: #245fd0;
   --primary-contrast: #ffffff;
   --primary-soft: rgba(79, 140, 255, 0.1);
   --primary-line: rgba(79, 140, 255, 0.28);
@@ -74,8 +74,8 @@
 
   --brand: #6ea0ff;
   --brand-2: #86b2ff;
-  --primary: #5c93ff;
-  --primary-hover: #78a6ff;
+  --primary: #4f8cff;
+  --primary-hover: #6ea0ff;
   --primary-contrast: #0b1020;
   --primary-soft: rgba(92, 147, 255, 0.14);
   --primary-line: rgba(110, 160, 255, 0.34);
