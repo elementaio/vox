@@ -1,6 +1,6 @@
 {
   "name": "vox-desktop",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Vox desktop app — the messenger as a native window (Electron, for reliable WebRTC calls on Windows/macOS/Linux).",
   "main": "main.js",

@@ -1,10 +1,13 @@
-# Builds the Vox desktop app (client + bundled relay for the Host toggle) into
-# installers on native per-OS/arch runners — so each bundle's Elixir release matches
-# its platform. macos-13 = Intel (x64), macos-14 = Apple Silicon (arm64).
+# Builds the Vox desktop app (v1 = a lean CLIENT that connects to a hosted relay)
+# into installers on native per-OS runners.
+#
+# Because v1 no longer bundles the arch-specific Elixir relay, the mac build is a
+# single UNIVERSAL dmg (runs on both Intel and Apple Silicon) built on macos-14 —
+# so we never touch the flaky/retired `macos-13` Intel runner.
 #
 # Trigger manually (Actions → this workflow → Run), or push a v* tag. Builds are
-# UNSIGNED (identity:null); add Apple/Windows signing certs as secrets + notarization
-# later for distribution outside Gatekeeper warnings.
+# UNSIGNED (identity:null); add Apple/Windows signing + notarization secrets later
+# for distribution without Gatekeeper warnings.
 name: Build desktop apps
 
 on:
@@ -22,14 +25,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # NOTE: Intel-Mac (macos-13) is omitted — GitHub's Intel runners schedule
-          # unreliably and can hang a run forever, and the bundled Elixir relay is
-          # arch-specific (can't cross-build on arm64). Build the Intel .dmg on an
-          # Intel Mac locally (`cd apps/desktop && npm run dist`) and attach it, or
-          # re-add `{os: macos-13, builder: --mac --x64}` when a runner is available.
-          - os: macos-14 # Apple Silicon
-            builder: --mac --arm64
-            artifact: vox-desktop-mac-arm64
+          - os: macos-14 # one universal dmg for Intel + Apple Silicon
+            builder: --mac --universal
+            artifact: vox-desktop-mac
           - os: windows-latest
             builder: --win --x64
             artifact: vox-desktop-windows
@@ -55,20 +53,6 @@ jobs:
       - name: Build web client
         run: pnpm --filter web build
 
-      - uses: erlef/setup-beam@v1
-        with:
-          otp-version: "27"
-          elixir-version: "1.18"
-
-      - name: Build the bundled relay release
-        working-directory: apps/server
-        shell: bash
-        run: |
-          mix local.hex --force
-          mix local.rebar --force
-          mix deps.get --only prod
-          MIX_ENV=prod mix release --overwrite
-
       - name: Install desktop deps (electron + builder)
         working-directory: apps/desktop
         run: npm install
@@ -87,8 +71,8 @@ jobs:
             apps/desktop/out/*.AppImage
             apps/desktop/out/*.zip
 
-      # On a v* tag, attach this platform's installer to the GitHub Release (each
-      # matrix job appends to the same release). Only runs for production tags.
+      # On a v* tag, attach this platform's installer to a (draft) GitHub Release;
+      # each matrix job appends to the same release.
       - name: Publish to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
