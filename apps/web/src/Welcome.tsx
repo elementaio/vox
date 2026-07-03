@@ -3,6 +3,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { createIdentity, persistIdentity, restoreIdentity, type Identity } from "./lib/identity";
 import { useLocales } from "./locales";
 import { PinInput } from "./PinInput";
+import { Logo } from "./components/icons";
 
 /**
  * First-run onboarding, written to be understandable by anyone. Three plain steps:
@@ -77,7 +78,7 @@ export default function Welcome({
       <div className="lobby-card">
         {mode === "choose" && (
           <>
-            <div className="brand-mark">П</div>
+            <Logo size={60} />
             <h1>{t("onboarding.welcomeTitle")}</h1>
             <p className="sub">{t("onboarding.welcomeSub")}</p>
             <button onClick={startCreate}>{t("onboarding.createAccount")}</button>

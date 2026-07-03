@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CallState } from "../lib/client";
 import type { StoredContact } from "../lib/db";
 import { useLocales } from "../locales";
+import { IconPhone, IconVideo, IconPhoneDown, IconClose } from "./icons";
 
 function Tile({ stream, muted, name }: { stream: MediaStream; muted?: boolean; name: string }) {
   const ref = useRef<HTMLVideoElement>(null);
@@ -45,8 +46,8 @@ export function GroupCallOverlay({
           {callState === "calling" ? t("chat.groupCalling") : t("chat.connecting")}
         </div>
       )}
-      <button className="hangup" onClick={onHangup}>
-        {t("chat.endCall")}
+      <button className="hangup" onClick={onHangup} title={t("chat.endCall")} aria-label={t("chat.endCall")}>
+        <IconPhoneDown />
       </button>
     </div>
   );
@@ -78,7 +79,7 @@ export function GroupCallStarter({
         <div className="net-header">
           <h3>{t("chat.newGroupCall")}</h3>
           <button className="net-close" aria-label="close" onClick={onClose}>
-            ✕
+            <IconClose width="18" height="18" />
           </button>
         </div>
         <p className="net-intro">{t("chat.pickParticipants")}</p>
@@ -94,9 +95,11 @@ export function GroupCallStarter({
         </div>
         <div className="gc-actions">
           <button className="gc-start voice" disabled={selected.size === 0} onClick={() => onStart([...selected], false)}>
+            <IconPhone width="17" height="17" />
             {t("chat.voiceCall")}
           </button>
           <button className="gc-start video" disabled={selected.size === 0} onClick={() => onStart([...selected], true)}>
+            <IconVideo width="17" height="17" />
             {t("chat.videoCall")}
           </button>
         </div>

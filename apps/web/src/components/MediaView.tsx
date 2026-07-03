@@ -46,7 +46,11 @@ export function MediaView({ media, client }: { media: MediaRef; client: Client |
   // generic file → download link
   return url ? (
     <a className="media-file" href={url} download={media.name || "file"}>
-      📄 {media.name || "file"}
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9z" />
+        <path d="M13 3v6h6" />
+      </svg>
+      {media.name || "file"}
     </a>
   ) : (
     <div className="media-loading">{t("chat.loadingFile")}</div>

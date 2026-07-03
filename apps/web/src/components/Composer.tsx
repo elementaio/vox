@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { useLocales } from "../locales";
+import { IconAttach, IconMic, IconStop, IconSend } from "./icons";
 
 export function Composer({
   draft,
@@ -18,26 +19,20 @@ export function Composer({
 }) {
   const { t } = useLocales();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasText = draft.trim().length > 0;
   return (
-    <>
+    <form className="composer" onSubmit={onSubmit}>
       <input ref={fileInputRef} type="file" style={{ display: "none" }} onChange={onFilePicked} />
-      <form className="composer" onSubmit={onSubmit}>
-        <button
-          type="button"
-          className="attach"
-          title={t("chat.attachImage")}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          📎
-        </button>
-        <button
-          type="button"
-          className={`mic ${recording ? "recording" : ""}`}
-          title={recording ? t("chat.stopSend") : t("chat.recordVoice")}
-          onClick={onToggleRecording}
-        >
-          {recording ? "⏹" : "🎤"}
-        </button>
+      <button
+        type="button"
+        className="attach"
+        title={t("chat.attachImage")}
+        aria-label={t("chat.attachImage")}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <IconAttach />
+      </button>
+      <div className="composer-input">
         <input
           value={draft}
           onChange={(e) => onDraftChange(e.target.value)}
@@ -45,10 +40,22 @@ export function Composer({
           disabled={recording}
           autoFocus
         />
-        <button type="submit" disabled={!draft.trim()}>
-          {t("chat.send")}
+      </div>
+      {hasText ? (
+        <button type="submit" className="send" title={t("chat.send")} aria-label={t("chat.send")}>
+          <IconSend />
         </button>
-      </form>
-    </>
+      ) : (
+        <button
+          type="button"
+          className={`mic ${recording ? "recording" : ""}`}
+          title={recording ? t("chat.stopSend") : t("chat.recordVoice")}
+          aria-label={recording ? t("chat.stopSend") : t("chat.recordVoice")}
+          onClick={onToggleRecording}
+        >
+          {recording ? <IconStop /> : <IconMic />}
+        </button>
+      )}
+    </form>
   );
 }

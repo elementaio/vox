@@ -4,6 +4,7 @@ import { quoteText, time } from "../lib/format";
 import { useLocales } from "../locales";
 import { MediaView } from "./MediaView";
 import { Ticks } from "./Ticks";
+import { IconReply, IconEdit, IconTrash } from "./icons";
 
 export function MessageBubble({
   m,
@@ -52,16 +53,20 @@ export function MessageBubble({
                 {e}
               </button>
             ))}
-            <button title={t("chat.reply")} onClick={onReply}>
-              ↩
+            <button title={t("chat.reply")} aria-label={t("chat.reply")} onClick={onReply}>
+              <IconReply width="16" height="16" />
             </button>
             {m.mine && (
-              <button title={t("chat.edit")} onClick={onEdit}>
-                ✎
+              <button title={t("chat.edit")} aria-label={t("chat.edit")} onClick={onEdit}>
+                <IconEdit width="16" height="16" />
               </button>
             )}
-            <button title={m.mine ? t("chat.delete") : t("chat.deleteForMe")} onClick={onDelete}>
-              🗑
+            <button
+              title={m.mine ? t("chat.delete") : t("chat.deleteForMe")}
+              aria-label={m.mine ? t("chat.delete") : t("chat.deleteForMe")}
+              onClick={onDelete}
+            >
+              <IconTrash width="16" height="16" />
             </button>
           </div>
         </>

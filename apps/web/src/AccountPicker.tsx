@@ -1,5 +1,6 @@
 import { useLocales } from "./locales";
 import type { AccountRef } from "./lib/identity";
+import { Logo } from "./components/icons";
 
 /**
  * "Who's using Vox?" — the return screen when this device holds one or more
@@ -21,7 +22,7 @@ export default function AccountPicker({
   return (
     <div className="lobby">
       <div className="lobby-card">
-        <div className="brand-mark">П</div>
+        <Logo size={60} />
         <h1>{t("onboarding.pickTitle")}</h1>
         <p className="sub">{t("onboarding.pickSub")}</p>
         <div className="accounts">

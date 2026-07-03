@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { CallState } from "../lib/client";
 import { useLocales } from "../locales";
+import { IconPhone, IconVideo, IconPhoneDown } from "./icons";
 
 function CallVideo({
   stream,
@@ -33,16 +34,22 @@ export function CallToast({
   const { t } = useLocales();
   return (
     <div className="call-toast">
-      <div className="avatar big">{name.slice(0, 1).toUpperCase()}</div>
-      <div className="call-toast-name">{name}</div>
-      <div className="call-toast-sub">
-        {t("chat.incomingCall", { kind: video ? t("chat.video") : t("chat.voice") })}
+      <div className="call-toast-top">
+        <div className="avatar">{name.slice(0, 1).toUpperCase()}</div>
+        <div>
+          <div className="call-toast-name">{name}</div>
+          <div className="call-toast-sub">
+            {t("chat.incomingCall", { kind: video ? t("chat.video") : t("chat.voice") })}
+          </div>
+        </div>
       </div>
       <div className="call-toast-actions">
         <button className="decline" onClick={onDecline}>
+          <IconPhoneDown width="17" height="17" />
           {t("chat.decline")}
         </button>
         <button className="accept" onClick={onAccept}>
+          {video ? <IconVideo width="17" height="17" /> : <IconPhone width="17" height="17" />}
           {t("chat.accept")}
         </button>
       </div>
@@ -77,8 +84,8 @@ export function CallOverlay({
         )}
         {localStream && <CallVideo stream={localStream} className="local" muted />}
       </div>
-      <button className="hangup" onClick={onHangup}>
-        {t("chat.endCall")}
+      <button className="hangup" onClick={onHangup} title={t("chat.endCall")} aria-label={t("chat.endCall")}>
+        <IconPhoneDown />
       </button>
     </div>
   );

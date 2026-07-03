@@ -28,8 +28,27 @@ import {
   MessageBubble,
   type Preview,
 } from "./components";
+import {
+  Logo,
+  IconSearch,
+  IconPlus,
+  IconPhone,
+  IconVideo,
+  IconSettings,
+  IconBack,
+  IconMoon,
+  IconSun,
+  IconUsers,
+  IconShield,
+  IconGlobe,
+  IconDevice,
+  IconKey,
+  IconServer,
+  IconLogout,
+} from "./components/icons";
 import { NetworkPanel } from "./components/network";
 import { desktop } from "./lib/desktop";
+import { currentTheme, toggleTheme, type Theme } from "./lib/theme";
 
 export default function Messenger({
   identity,
@@ -52,7 +71,11 @@ export default function Messenger({
   const [recording, setRecording] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<StoredMessage[]>([]);
-  const [showInvite, setShowInvite] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addLink, setAddLink] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>(currentTheme());
   const [networkOpen, setNetworkOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const [canBio, setCanBio] = useState(false); // platform passkey available + not set up yet
@@ -360,6 +383,42 @@ export default function Messenger({
     if (ok) setCanBio(false);
   }
 
+  function flipTheme() {
+    setTheme(toggleTheme());
+  }
+
+  function copyLink() {
+    void navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1400);
+  }
+
+  // Add a contact from a pasted invite (full URL or raw token).
+  async function addByPastedLink() {
+    const raw = addLink.trim();
+    if (!raw) return;
+    let token = raw;
+    try {
+      token = new URL(raw).searchParams.get("add") || raw;
+    } catch {
+      /* not a URL — treat the whole thing as a token */
+    }
+    const c = parseInvite(token);
+    if (c && c.pubkey !== identity.publicKeyHex) {
+      await clientRef.current?.addContact(c);
+      setAddLink("");
+      setAddOpen(false);
+      openConversation(c.pubkey);
+    } else {
+      alert(t("chat.invalidInvite"));
+    }
+  }
+
+  function menuAction(fn: () => void) {
+    setMenuOpen(false);
+    fn();
+  }
+
   function beginGroupCall(pubkeys: string[], video: boolean) {
     setGroupActive(true);
     setGroupStarterOpen(false);
@@ -380,35 +439,35 @@ export default function Messenger({
   return (
     <div className="messenger">
       <aside className="sidebar">
-        <div className="me">
-          <div>
-            <div className="me-name">{identity.name}</div>
-            <div className={`me-status ${status === "connected" ? "on" : ""}`}>{status}</div>
-          </div>
-          <button className="link" onClick={() => setShowInvite((s) => !s)}>
-            {t("chat.invite")}
+        <div className="side-brand">
+          <Logo size={34} />
+          <span className="wordmark">Vox</span>
+          <span className="grow" />
+          <button
+            className="icon-btn"
+            onClick={flipTheme}
+            title={theme === "dark" ? t("chat.lightMode") : t("chat.darkMode")}
+            aria-label={theme === "dark" ? t("chat.lightMode") : t("chat.darkMode")}
+          >
+            {theme === "dark" ? <IconSun width="19" height="19" /> : <IconMoon width="19" height="19" />}
           </button>
         </div>
 
-        {showInvite && (
-          <div className="invite-panel">
-            <p>{t("chat.shareLink")}</p>
-            <div className="invite-row">
-              <input readOnly value={link} onFocus={(e) => e.target.select()} />
-              <button onClick={() => navigator.clipboard.writeText(link)}>{t("chat.copy")}</button>
-            </div>
-            <div className="qr">
-              <QRCodeSVG value={link} size={128} bgColor="#171a21" fgColor="#e6e9ef" />
-            </div>
-          </div>
-        )}
+        <label className="search">
+          <IconSearch width="17" height="17" />
+          <input
+            placeholder={t("chat.searchMessages")}
+            value={query}
+            onChange={(e) => onSearch(e.target.value)}
+          />
+        </label>
 
-        <input
-          className="search"
-          placeholder={t("chat.searchMessages")}
-          value={query}
-          onChange={(e) => onSearch(e.target.value)}
-        />
+        <button className="side-new" onClick={() => setAddOpen(true)}>
+          <IconPlus width="18" height="18" />
+          {t("chat.newChat")}
+        </button>
+
+        <div className="side-list-label">{t("chat.chats")}</div>
 
         {query && (
           <div className="contact-list">
@@ -463,39 +522,63 @@ export default function Messenger({
           </div>
         )}
 
-        <div className="sidebar-footer">
-          <button className="link server" onClick={changeServer} title={t("chat.changeRelay")}>
-            🖧 {serverLabel()}
+        <div className="side-foot">
+          <div className="avatar-wrap">
+            <div className="avatar sm">{identity.name.slice(0, 1).toUpperCase()}</div>
+            {status === "connected" && <span className="presence-dot" />}
+          </div>
+          <div className="foot-body">
+            <div className="foot-name">
+              {identity.name} <span className="you">({t("chat.youLabel")})</span>
+            </div>
+            <div className={`foot-status ${status === "connected" ? "on" : ""}`}>{status}</div>
+          </div>
+          <button
+            className="icon-btn"
+            onClick={() => setMenuOpen((o) => !o)}
+            title={t("chat.settings")}
+            aria-label={t("chat.settings")}
+          >
+            <IconSettings width="20" height="20" />
           </button>
-          {desktop() && (
-            <button
-              className="link network"
-              onClick={() => setNetworkOpen(true)}
-              title={t("network.title")}
-            >
-              📡 {t("network.open")}
-            </button>
+
+          {menuOpen && (
+            <>
+              <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
+              <div className="settings-menu">
+                <button className="menu-item" onClick={() => menuAction(() => setGroupStarterOpen(true))}>
+                  <IconUsers width="18" height="18" /> {t("chat.newGroupCall")}
+                </button>
+                <button className="menu-item" onClick={() => menuAction(() => setLinkOpen(true))}>
+                  <IconDevice width="18" height="18" /> {t("chat.useAnotherDevice")}
+                </button>
+                {canBio && (
+                  <button className="menu-item" onClick={() => menuAction(enableBiometric)}>
+                    <IconKey width="18" height="18" /> {t("onboarding.enableBiometric")}
+                  </button>
+                )}
+                <div className="menu-sep" />
+                <button className="menu-item" onClick={() => menuAction(changeServer)} title={serverLabel()}>
+                  <IconServer width="18" height="18" /> {t("chat.changeRelay")}
+                </button>
+                {desktop() && (
+                  <button className="menu-item" onClick={() => menuAction(() => setNetworkOpen(true))}>
+                    <IconShield width="18" height="18" /> {t("network.open")}
+                  </button>
+                )}
+                <button className="menu-item" onClick={() => menuAction(joinNetwork)}>
+                  <IconKey width="18" height="18" /> {t("chat.joinPrivate")}
+                </button>
+                <button className="menu-item" onClick={() => menuAction(toggle)}>
+                  <IconGlobe width="18" height="18" /> {t("settings.toggleLanguage")}
+                </button>
+                <div className="menu-sep" />
+                <button className="menu-item danger" onClick={() => menuAction(signOut)}>
+                  <IconLogout width="18" height="18" /> {t("chat.signOut")}
+                </button>
+              </div>
+            </>
           )}
-          <button className="link" onClick={() => setGroupStarterOpen(true)} title={t("chat.newGroupCall")}>
-            👥 {t("chat.groupCall")}
-          </button>
-          <button className="link" onClick={() => setLinkOpen(true)} title={t("chat.useAnotherDevice")}>
-            📱 {t("chat.useAnotherDevice")}
-          </button>
-          {canBio && (
-            <button className="link" onClick={enableBiometric} title={t("onboarding.enableBiometric")}>
-              🔐 {t("onboarding.enableBiometric")}
-            </button>
-          )}
-          <button className="link" onClick={joinNetwork} title={t("chat.redeemToken")}>
-            {t("chat.joinPrivate")}
-          </button>
-          <button className="link lang" onClick={toggle}>
-            {t("settings.toggleLanguage")}
-          </button>
-          <button className="link signout" onClick={signOut}>
-            {t("chat.signOut")}
-          </button>
         </div>
       </aside>
 
@@ -503,31 +586,38 @@ export default function Messenger({
         {!activeContact ? (
           <div className="no-convo">
             <div>
-              <h2>🔒 {identity.name}</h2>
-              <p>{t("chat.selectContact")}</p>
+              <Logo size={60} />
+              <h2>{t("chat.selectContact")}</h2>
               <p className="muted">{t("chat.e2eNote")}</p>
             </div>
           </div>
         ) : (
           <>
             <header className="convo-header">
-              <div className="avatar">{activeContact.name.slice(0, 1).toUpperCase()}</div>
+              <div className="avatar-wrap">
+                <div className="avatar">{activeContact.name.slice(0, 1).toUpperCase()}</div>
+                {presence[activeContact.pubkey]?.online && <span className="presence-dot" />}
+              </div>
               <div>
                 <div className="convo-name">{activeContact.name}</div>
-                <div className="convo-sub">{presenceText(t, presence[activeContact.pubkey])}</div>
+                <div className={`convo-sub ${presence[activeContact.pubkey]?.online ? "" : "off"}`}>
+                  {presenceText(t, presence[activeContact.pubkey])}
+                </div>
               </div>
               <div className="call-buttons">
                 <button
                   title={t("chat.voiceCall")}
+                  aria-label={t("chat.voiceCall")}
                   onClick={() => clientRef.current?.startCall(activeContact.pubkey, false)}
                 >
-                  📞
+                  <IconPhone width="21" height="21" />
                 </button>
                 <button
                   title={t("chat.videoCall")}
+                  aria-label={t("chat.videoCall")}
                   onClick={() => clientRef.current?.startCall(activeContact.pubkey, true)}
                 >
-                  🎥
+                  <IconVideo width="21" height="21" />
                 </button>
               </div>
             </header>
@@ -580,6 +670,82 @@ export default function Messenger({
               onFilePicked={onFilePicked}
             />
           </>
+        )}
+
+        {addOpen && (
+          <div className="addpanel">
+            <div className="addpanel-head">
+              <button className="icon-btn" onClick={() => setAddOpen(false)} aria-label={t("chat.addPeople")}>
+                <IconBack />
+              </button>
+              <h2>{t("chat.addPeople")}</h2>
+            </div>
+            <div className="addpanel-body">
+              <div className="addpanel-inner">
+                <div className="explain">
+                  <span className="em">
+                    <IconShield width="22" height="22" />
+                  </span>
+                  <p>
+                    <b>{t("chat.addExplainTitle")}</b> {t("chat.addExplainBody")}
+                  </p>
+                </div>
+
+                <div className="add-card">
+                  <h3>{t("chat.yourInvite")}</h3>
+                  <p className="hint">{t("chat.yourInviteHint")}</p>
+                  <div className="qr-row">
+                    <div className="qr-box">
+                      <QRCodeSVG value={link} size={112} bgColor="#ffffff" fgColor="#0b1020" />
+                    </div>
+                    <div className="qr-side">
+                      {t("chat.yourInviteSide")}
+                      <div className="link-field">
+                        <code>{link}</code>
+                        <button onClick={copyLink}>{copied ? t("chat.copied") : t("chat.copy")}</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="add-divider">{t("chat.or")}</div>
+
+                <div className="add-card">
+                  <h3>{t("chat.addByLink")}</h3>
+                  <p className="hint">{t("chat.addByLinkHint")}</p>
+                  <div className="add-field">
+                    <input
+                      placeholder={t("chat.pasteInvite")}
+                      value={addLink}
+                      onChange={(e) => setAddLink(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && addByPastedLink()}
+                    />
+                    <button disabled={!addLink.trim()} onClick={addByPastedLink}>
+                      {t("chat.add")}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="add-divider">{t("chat.or")}</div>
+
+                <button
+                  className="grp-btn"
+                  onClick={() => {
+                    setAddOpen(false);
+                    setGroupStarterOpen(true);
+                  }}
+                >
+                  <span className="grp-ic">
+                    <IconUsers width="24" height="24" />
+                  </span>
+                  <div>
+                    <b>{t("chat.newGroupCall")}</b>
+                    <span>{t("chat.newGroupCallSub")}</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </section>
 
