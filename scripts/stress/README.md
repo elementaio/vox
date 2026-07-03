@@ -32,6 +32,19 @@ test; this just removes the video-encode CPU that otherwise starves a single
 laptop. Effect measured: fwd6 all-media-connected dropped from ~27 s (normal
 fake camera) to **<1 s** — proving the join latency was CPU-encode, not protocol.
 
+## Node-WebRTC scale harness (no browsers at all)
+
+    node scripts/stress/node-scale.mjs 20 50 100
+
+Runs N real SDK clients in ONE Node process via @roamhq/wrtc (RTCPeerConnection
++ synthetic tiny video), no Chromium. The shim (`node-shim.mjs`) installs the
+WebRTC globals, a fake getUserMedia, and — critically — a **relay bridge**:
+wrtc can't forward a received track to another PeerConnection (browsers can), so
+the shim transparently pipes remote tracks through RTCVideoSink→RTCVideoSource,
+making the forwarder topology work headless. Verified: N=6 forwarder → full 6/6,
+exactly 30 relayed streams. This is the path to N=50-100 on one machine (peers
+are objects, not processes); for N in the hundreds, shard across worker_threads.
+
 ## Empirical ceiling on ONE laptop
 
 - **N ≤ 6, tiny video: rock solid** — all peers, all streams, sub-second.

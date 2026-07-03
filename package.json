@@ -9,5 +9,8 @@
     "dev:server": "cd apps/server && mix phx.server",
     "setup:server": "cd apps/server && mix deps.get",
     "build": "pnpm --filter web build && rm -rf apps/server/priv/static/app && cp -r apps/web/dist apps/server/priv/static/app"
+  },
+  "devDependencies": {
+    "@roamhq/wrtc": "^0.10.0"
   }
 }
