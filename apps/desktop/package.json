@@ -9,7 +9,8 @@
     "dev": "VOX_DEV_URL=http://localhost:5180 electron .",
     "build:web": "pnpm --filter web build",
     "build:relay": "cd ../server && MIX_ENV=prod mix release --overwrite",
-    "dist": "pnpm run build:web && pnpm run build:relay && electron-builder"
+    "dist": "pnpm run build:web && electron-builder",
+    "dist:host": "pnpm run build:web && pnpm run build:relay && electron-builder --config.extraResources.1.from=../server/_build/prod/rel/vox --config.extraResources.1.to=vox"
   },
   "devDependencies": {
     "electron": "^33.3.1",
@@ -21,8 +22,7 @@
     "directories": { "output": "out", "buildResources": "build" },
     "files": ["main.js", "preload.js", "build/icon.png"],
     "extraResources": [
-      { "from": "../web/dist", "to": "web" },
-      { "from": "../server/_build/prod/rel/vox", "to": "vox" }
+      { "from": "../web/dist", "to": "web" }
     ],
     "mac": {
       "category": "public.app-category.social-networking",

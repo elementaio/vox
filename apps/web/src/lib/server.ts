@@ -17,6 +17,9 @@ export function serverBase(): string {
 
   const loc = window.location;
   if (loc.port === "5180") return "ws://localhost:4000"; // Vite dev → local relay
+  // Packaged desktop/native shell is served from file:// (no host to inherit) →
+  // default to the public relay. Users can still point elsewhere via setServer().
+  if (loc.protocol === "file:" || !loc.host) return "wss://vox.server.jadwal.io";
   const scheme = loc.protocol === "https:" ? "wss:" : "ws:";
   return `${scheme}//${loc.host}`;
 }
