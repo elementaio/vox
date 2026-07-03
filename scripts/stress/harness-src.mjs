@@ -1,10 +1,41 @@
 import * as sdk from '../../packages/sdk/src/index.ts';
 
+  // TINY video mode (window.__tinyVideo, set by run.mjs from TINY=1): a few
+  // pixels at low fps so ONE machine can run many encoders and we can probe the
+  // fan-out TOPOLOGY at higher participant counts. Quality is irrelevant to the
+  // topology under test — pixels are just the CPU cost that otherwise starves a
+  // single-laptop rig. Default (unset) uses the browser's normal fake camera.
+  const VIDEO = { width: 48, height: 36, frameRate: 5 };
+  if (window.__tinyVideo) {
+    const _gum = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia = (c) => {
+      if (c && c.video) c = { ...c, video: VIDEO };
+      return _gum(c);
+    };
+  }
+
   // Track every RTCPeerConnection the SDK creates — the measurement tap.
   const pcs = [];
   const NativePC = window.RTCPeerConnection;
   window.RTCPeerConnection = class extends NativePC {
-    constructor(...args) { super(...args); pcs.push(this); }
+    constructor(...args) {
+      super(...args);
+      pcs.push(this);
+      this.addEventListener('negotiationneeded', () => {});
+      if (window.__tinyVideo) {
+        const capBitrate = () => {
+          for (const sender of this.getSenders()) {
+            if (sender.track && sender.track.kind === 'video') {
+              const p = sender.getParameters();
+              if (!p.encodings || !p.encodings.length) p.encodings = [{}];
+              p.encodings[0].maxBitrate = 60_000; // 60 kbps/stream
+              sender.setParameters(p).catch(() => {});
+            }
+          }
+        };
+        this.addEventListener('signalingstatechange', () => { if (this.signalingState === 'stable') capBitrate(); });
+      }
+    }
   };
 
   

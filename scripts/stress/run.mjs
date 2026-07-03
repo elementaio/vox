@@ -51,6 +51,7 @@ async function runScenario(browser, { label, n, forwarders: fwdCount, video = tr
     const ctx = await browser.newContext({ permissions: ['camera', 'microphone'] });
     const page = await ctx.newPage();
     page.on('pageerror', (e) => console.log(`  [${label} P${i}] pageerror: ${e.message}`));
+    await page.addInitScript((tiny) => { window.__tinyVideo = tiny; }, process.env.TINY === '1');
     await page.goto(HARNESS_URL);
     await page.waitForFunction('window.__ready === true');
     pages.push(page);
@@ -157,6 +158,11 @@ const SCENARIOS = {
   dual10: { label: 'dual10', n: 10, forwarders: 2 },
   fwd12:  { label: 'fwd12',  n: 12, forwarders: 1 },
   dual12: { label: 'dual12', n: 12, forwarders: 2 },
+  n12f2:  { label: 'n12f2',  n: 12, forwarders: 2 },
+  n16f3:  { label: 'n16f3',  n: 16, forwarders: 3 },
+  n20f4:  { label: 'n20f4',  n: 20, forwarders: 4 },
+  n24f5:  { label: 'n24f5',  n: 24, forwarders: 5 },
+  n30f6:  { label: 'n30f6',  n: 30, forwarders: 6 },
 };
 const picked = process.argv.slice(2);
 const runs = picked.length ? picked.map((k) => SCENARIOS[k]).filter(Boolean) : Object.values(SCENARIOS);
