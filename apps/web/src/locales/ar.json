@@ -137,6 +137,18 @@
     "newGroupCallSub": "ابدأ مكالمة جماعية مع العائلة أو الأصدقاء",
     "invalidInvite": "لا يبدو هذا رابط دعوة Vox صالحًا."
   },
+  "call": {
+    "encrypted": "مشفّرة طرفًا لطرف",
+    "ringing": "يرِن…",
+    "waiting": "بانتظار انضمام الآخرين…",
+    "mute": "كتم",
+    "unmute": "إلغاء الكتم",
+    "cameraOff": "إيقاف الكاميرا",
+    "cameraOn": "تشغيل الكاميرا",
+    "cameraIsOff": "الكاميرا متوقفة",
+    "you": "أنت",
+    "participants": "{{n}} في المكالمة"
+  },
   "prompts": {
     "editMessage": "تعديل الرسالة:",
     "deleteForEveryone": "حذف هذه الرسالة للجميع؟",

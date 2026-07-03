@@ -137,6 +137,18 @@
     "newGroupCallSub": "Start a group call with family or friends",
     "invalidInvite": "That doesn't look like a valid Vox invite link."
   },
+  "call": {
+    "encrypted": "End-to-end encrypted",
+    "ringing": "Ringing…",
+    "waiting": "Waiting for others to join…",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "cameraOff": "Turn camera off",
+    "cameraOn": "Turn camera on",
+    "cameraIsOff": "Camera off",
+    "you": "You",
+    "participants": "{{n}} in call"
+  },
   "prompts": {
     "editMessage": "Edit message:",
     "deleteForEveryone": "Delete this message for everyone?",

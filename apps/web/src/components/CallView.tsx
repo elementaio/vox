@@ -1,23 +1,8 @@
-import { useEffect, useRef } from "react";
 import type { CallState } from "../lib/client";
 import { useLocales } from "../locales";
 import { IconPhone, IconVideo, IconPhoneDown } from "./icons";
-
-function CallVideo({
-  stream,
-  className,
-  muted,
-}: {
-  stream: MediaStream;
-  className: string;
-  muted?: boolean;
-}) {
-  const ref = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    if (ref.current) ref.current.srcObject = stream;
-  }, [stream]);
-  return <video ref={ref} className={`call-video ${className}`} autoPlay playsInline muted={muted} />;
-}
+import { CallVideo, CallControls, CallTopbar } from "./callkit";
+import { useTrackControls, useElapsed, useHasVideo, initial } from "../lib/call";
 
 /** Incoming-call toast with accept/decline. */
 export function CallToast({
@@ -35,7 +20,7 @@ export function CallToast({
   return (
     <div className="call-toast">
       <div className="call-toast-top">
-        <div className="avatar">{name.slice(0, 1).toUpperCase()}</div>
+        <div className="avatar">{initial(name)}</div>
         <div>
           <div className="call-toast-name">{name}</div>
           <div className="call-toast-sub">
@@ -57,7 +42,7 @@ export function CallToast({
   );
 }
 
-/** Full-screen active-call overlay (remote + local video, hang up). */
+/** Full-screen active 1:1 call: remote video (or avatar for voice), self-view, controls. */
 export function CallOverlay({
   callState,
   callName,
@@ -72,21 +57,36 @@ export function CallOverlay({
   onHangup: () => void;
 }) {
   const { t } = useLocales();
+  const ctl = useTrackControls(localStream);
+  const connected = callState === "connected";
+  const elapsed = useElapsed(connected);
+  const remoteVideo = useHasVideo(remoteStream);
+  const status = connected ? elapsed : callState === "calling" ? t("call.ringing") : t("chat.connecting");
+
   return (
     <div className="call-overlay">
+      <CallTopbar title={callName} status={status} />
+
       <div className="call-stage">
-        {remoteStream ? (
-          <CallVideo stream={remoteStream} className="remote" />
+        {remoteStream && remoteVideo ? (
+          <CallVideo stream={remoteStream} className="call-video remote" />
         ) : (
-          <div className="call-waiting">
-            {callState === "calling" ? t("chat.calling", { name: callName }) : t("chat.connecting")}
+          <div className={`call-avatar-stage ${connected ? "" : "ringing"}`}>
+            <div className="avatar callbig">{initial(callName)}</div>
+            <div className="call-bigname">{callName}</div>
+            {!connected && <div className="call-substate">{status}</div>}
           </div>
         )}
-        {localStream && <CallVideo stream={localStream} className="local" muted />}
+
+        {localStream && ctl.hasVideo && ctl.camOn && (
+          <div className="call-self">
+            <CallVideo stream={localStream} className="call-video self" muted />
+            <span className="call-self-label">{t("call.you")}</span>
+          </div>
+        )}
       </div>
-      <button className="hangup" onClick={onHangup} title={t("chat.endCall")} aria-label={t("chat.endCall")}>
-        <IconPhoneDown />
-      </button>
+
+      <CallControls ctl={ctl} onHangup={onHangup} />
     </div>
   );
 }

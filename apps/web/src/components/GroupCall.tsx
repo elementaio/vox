@@ -1,18 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { CallState } from "../lib/client";
 import type { StoredContact } from "../lib/db";
 import { useLocales } from "../locales";
-import { IconPhone, IconVideo, IconPhoneDown, IconClose } from "./icons";
+import { IconPhone, IconVideo, IconClose } from "./icons";
+import { CallVideo, CallControls, CallTopbar } from "./callkit";
+import { useTrackControls, useElapsed, useHasVideo, initial } from "../lib/call";
 
-function Tile({ stream, muted, name }: { stream: MediaStream; muted?: boolean; name: string }) {
-  const ref = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    if (ref.current) ref.current.srcObject = stream;
-  }, [stream]);
+/** One participant cell: their video, or an avatar when their camera is off / voice-only. */
+function Tile({ stream, muted, name, you }: { stream: MediaStream; muted?: boolean; name: string; you?: boolean }) {
+  const { t } = useLocales();
+  const hasVideo = useHasVideo(stream);
   return (
     <div className="gc-tile">
-      <video ref={ref} className="gc-tile-video" autoPlay playsInline muted={muted} />
-      <span className="gc-tile-name">{name}</span>
+      {hasVideo ? (
+        <CallVideo stream={stream} className={`gc-tile-video ${you ? "mirror" : ""}`} muted={muted} />
+      ) : (
+        <div className="gc-tile-avatar">
+          <div className="avatar med">{initial(name)}</div>
+        </div>
+      )}
+      <span className="gc-tile-name">{you ? `${name} (${t("call.you")})` : name}</span>
     </div>
   );
 }
@@ -32,23 +39,33 @@ export function GroupCallOverlay({
   onHangup: () => void;
 }) {
   const { t } = useLocales();
+  const ctl = useTrackControls(localStream);
   const entries = Object.entries(peers);
+  const count = entries.length + 1;
+  const connected = entries.length > 0;
+  const elapsed = useElapsed(connected);
+
   return (
     <div className="call-overlay">
-      <div className={`gc-grid count-${Math.min(entries.length + 1, 6)}`}>
-        {localStream && <Tile stream={localStream} muted name={`${selfName} (${t("chat.youLabel")})`} />}
+      <CallTopbar
+        title={t("call.participants", { n: count })}
+        status={connected ? elapsed : t("chat.groupCalling")}
+      />
+
+      <div className={`gc-grid count-${Math.min(count, 6)}`}>
+        {localStream && <Tile stream={localStream} muted name={selfName} you />}
         {entries.map(([pk, p]) => (
           <Tile key={pk} stream={p.stream} name={p.name} />
         ))}
       </div>
+
       {entries.length === 0 && (
         <div className="call-waiting">
-          {callState === "calling" ? t("chat.groupCalling") : t("chat.connecting")}
+          {callState === "calling" ? t("chat.groupCalling") : t("call.waiting")}
         </div>
       )}
-      <button className="hangup" onClick={onHangup} title={t("chat.endCall")} aria-label={t("chat.endCall")}>
-        <IconPhoneDown />
-      </button>
+
+      <CallControls ctl={ctl} onHangup={onHangup} />
     </div>
   );
 }
@@ -88,7 +105,7 @@ export function GroupCallStarter({
           {contacts.map((c) => (
             <label className="gc-row" key={c.pubkey}>
               <input type="checkbox" checked={selected.has(c.pubkey)} onChange={() => toggle(c.pubkey)} />
-              <span className="gc-avatar">{c.name.slice(0, 1).toUpperCase()}</span>
+              <span className="gc-avatar">{initial(c.name)}</span>
               <span className="gc-name">{c.name}</span>
             </label>
           ))}

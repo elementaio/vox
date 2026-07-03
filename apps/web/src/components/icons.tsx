@@ -154,6 +154,26 @@ export const IconShield = (p: P) => (
     <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z" />
   </S>
 );
+export const IconMicOff = (p: P) => (
+  <S {...p}>
+    <path d="M9 5a3 3 0 0 1 6 0v5m-1.6 2.4A3 3 0 0 1 9 10V9" />
+    <path d="M5 11a7 7 0 0 0 10.5 6M19 11a7 7 0 0 1-1 3.6M12 18v3" />
+    <path d="M3 3l18 18" />
+  </S>
+);
+export const IconVideoOff = (p: P) => (
+  <S {...p}>
+    <path d="M10 6h3a3 3 0 0 1 3 3v1l4-2.5v9l-3-1.9" />
+    <path d="M16 16a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3" />
+    <path d="M3 3l18 18" />
+  </S>
+);
+export const IconLock = (p: P) => (
+  <S {...p}>
+    <rect x="4.5" y="10" width="15" height="10" rx="2.5" />
+    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+  </S>
+);
 export const IconDevice = (p: P) => (
   <S {...p}>
     <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
