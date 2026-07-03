@@ -6,6 +6,7 @@
 //
 // Needs the relay on :4000 and @roamhq/wrtc (installed at the repo root).
 import './node-shim.mjs';
+globalThis.__voxDebug = process.env.VOXDEBUG === '1';
 const sdk = await import('../../packages/sdk/dist/index.js');
 
 const RELAY_HTTP = 'http://127.0.0.1:4000';
@@ -29,17 +30,18 @@ globalThis.RTCPeerConnection = class extends NativePC {
 };
 
 async function runN(n) {
-  const fwd = n <= 4 ? 0 : Math.max(1, Math.ceil(n / 6)); // ~1 host per 6 leaves
+  const fwd = process.env.FWD ? Number(process.env.FWD) : (n <= 4 ? 0 : Math.max(1, Math.ceil(n / 6)));
   const nodes = [];
   for (let i = 0; i < n; i++) {
     const identity = sdk.createIdentity();
-    const st = { peers: new Set() };
+    const st = { peers: new Set(), state: 'idle', ev: [] };
     const events = {
       onStatus() {}, onMessage() {}, onMessageUpdated() {}, onMessageRemoved() {},
       onReceipt() {}, onTyping() {}, onContact() {}, onPresence() {},
-      onIncomingCall: (c, name, callId) => client.acceptCall(callId).catch(() => {}),
-      onCallState() {}, onLocalStream() {}, onRemoteStream() {},
-      onPeerStream: (pk, name, stream) => { stream ? st.peers.add(pk) : st.peers.delete(pk); },
+      onIncomingCall: (c, name, callId) => { st.ev.push('ring'); client.acceptCall(callId).catch((e) => st.ev.push('acc-err')); },
+      onCallState: (s) => { st.state = s; st.ev.push('cs:' + s); },
+      onLocalStream() {}, onRemoteStream() {},
+      onPeerStream: (pk, name, stream) => { stream ? st.peers.add(pk) : st.peers.delete(pk); st.ev.push(`ps:${st.peers.size}`); },
     };
     const client = new sdk.Client({ socketUrl: RELAY_WS, httpBase: RELAY_HTTP, identity, store: makeStore(), events, deviceId: `n${i}` });
     client.connect([]);
@@ -78,6 +80,12 @@ async function runN(n) {
     medPeers: counts.sort((x, y) => x - y)[Math.floor(n / 2)],
     streams: b.inbound, fpsPerStream: b.inbound ? +(((b.f - a.f) / 4) / b.inbound).toFixed(1) : 0,
   };
+  if (!r.complete && n <= 8) {
+    for (const nd of nodes) {
+      const role = fwd > 0 && ids.slice(0, fwd).includes(nd.pubkey) ? 'FWD' : 'leaf';
+      console.log(`   ${role} n${nd.i} peers=${nd.st.peers.size} state=${nd.st.state} | ${nd.st.ev.slice(-10).join(' ')}`);
+    }
+  }
   for (const nd of nodes) try { nd.client.endCall?.('ended'); } catch {}
   pcs.length = 0;
   await new Promise((r) => setTimeout(r, 800));

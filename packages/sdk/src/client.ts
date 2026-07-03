@@ -116,6 +116,10 @@ export class Client {
     | { callId: string; contact: string; sdp: string; video: boolean; enc: string; ice: RTCIceCandidateInit[] }
     | null = null;
   private room: GroupCall | null = null;
+  // Joins that arrived before we entered the room for their callId — replayed
+  // when beginGroupRoom completes (closes the forwarder-mesh race where a peer
+  // forwarder's join reaches us before we've begun).
+  private earlyJoins = new Map<string, { from: string; body: Extract<Body, { t: "call-join" }> }[]>();
   private pendingInvite:
     | { callId: string; from: string; name: string; video: boolean; roster: RosterEntry[]; forwarder?: string; forwarders?: string[]; callerEnc: string; callerRelay?: string }
     | null = null;
@@ -589,6 +593,13 @@ export class Client {
     } else if (forwarders.length === 0 && !ring) {
       for (const pk of dir.keys()) join(pk); // mesh joiner
     }
+
+    // Replay any joins that reached us before this room existed.
+    const buffered = this.earlyJoins.get(callId);
+    if (buffered) {
+      this.earlyJoins.delete(callId);
+      for (const { from, body } of buffered) void this.onCallJoin(from, body);
+    }
   }
 
   /** Accept a group invite: set up my room (star/cascade → join my host; mesh → all). */
@@ -844,7 +855,14 @@ export class Client {
 
   private async onCallJoin(from: string, body: Extract<Body, { t: "call-join" }>): Promise<void> {
     const room = this.room;
-    if (!room || room.callId !== body.callId) return;
+    if (!room || room.callId !== body.callId) {
+      // Not in this room yet: hold the join and replay it once we begin, so a
+      // co-forwarder that joined us early isn't lost.
+      const q = this.earlyJoins.get(body.callId) ?? [];
+      if (!q.some((e) => e.from === from)) q.push({ from, body });
+      this.earlyJoins.set(body.callId, q);
+      return;
+    }
     room.dir.set(from, { enc: body.enc, name: body.name, relay: body.relay });
     if (room.peers.has(from)) return; // already connecting/connected
     const me = this.identity.publicKeyHex;
