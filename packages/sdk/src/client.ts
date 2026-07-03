@@ -60,6 +60,22 @@ interface RoomPeer {
   renegTimer: ReturnType<typeof setTimeout> | null; // debounce: coalesce a burst of addTrack into ONE offer
   polite: boolean; // perfect negotiation: on a glare, the polite peer yields
   makingOffer: boolean; // I'm mid-way creating an offer to this peer
+  // Forwarder side only: one stable send-slot PER origin I relay to this peer.
+  pool: PeerPool | null;
+}
+
+/** One relay slot: a fixed stream whose id is the call-fwd attribution key, and the
+ *  audio/video transceivers bound to it. The slot is added the first time an origin
+ *  is relayed (already carrying its track, so a small initial offer stays small and
+ *  connections form as reliably as the mesh path); if that origin later churns, its
+ *  slot is reused via replaceTrack — the m-line order and stream id never move. */
+interface PoolSlot {
+  rs: MediaStream;
+  v: RTCRtpTransceiver;
+  a: RTCRtpTransceiver;
+}
+interface PeerPool {
+  byOrigin: Map<string, PoolSlot>;
 }
 
 /**
@@ -652,13 +668,35 @@ export class Client {
       if (pc.connectionState === "connected") this.events.onCallState("connected");
       else if (pc.connectionState === "failed" || pc.connectionState === "disconnected") this.dropPeer(pk);
     };
+    // Forwarders keep a per-origin slot map (populated lazily, on first relay), so
+    // the initial offer carries only my own media — a small offer that connects as
+    // reliably as the mesh path, unlike a big pre-negotiated empty pool.
+    const pool: PeerPool | null =
+      room.forwarders.includes(this.identity.publicKeyHex) ? { byOrigin: new Map() } : null;
     room.peers.set(pk, {
       pubkey: pk, pc, fwded: new Set(), negotiating: false, renegPending: false,
       renegTimer: null,
       polite: this.identity.publicKeyHex > pk, // higher pubkey yields on a glare
       makingOffer: false,
+      pool,
     });
     return pc;
+  }
+
+
+  /** A relay slot for `origin`, added ACTIVE (transceivers already carry the tracks)
+   *  so the m-line negotiates on straight away — no empty-then-activate two-step. */
+  private newPoolSlot(pc: RTCPeerConnection, stream: MediaStream): PoolSlot {
+    const rs = new MediaStream();
+    const vt = stream.getVideoTracks()[0];
+    const at = stream.getAudioTracks()[0];
+    return {
+      rs,
+      v: vt ? pc.addTransceiver(vt, { direction: "sendonly", streams: [rs] })
+            : pc.addTransceiver("video", { direction: "sendonly", streams: [rs] }),
+      a: at ? pc.addTransceiver(at, { direction: "sendonly", streams: [rs] })
+            : pc.addTransceiver("audio", { direction: "sendonly", streams: [rs] }),
+    };
   }
 
   /**
@@ -711,7 +749,7 @@ export class Client {
     }
   }
 
-  /** Put `origin`'s media onto `peer`'s connection (with attribution) + renegotiate.
+  /** Put `origin`'s media onto `peer`'s connection (with attribution).
    * Local origins go to everyone; remote origins never go back to a forwarder (loops). */
   private pushOrigin(peer: RoomPeer, origin: string): void {
     const room = this.room;
@@ -720,8 +758,27 @@ export class Client {
     if (!o) return;
     if (room.forwarders.includes(peer.pubkey) && !o.local) return; // don't loop remote origins
     peer.fwded.add(origin);
-    for (const track of o.stream.getTracks()) peer.pc.addTrack(track, o.stream);
     const info = room.dir.get(peer.pubkey)!;
+
+    if (peer.pool) {
+      let slot = peer.pool.byOrigin.get(origin);
+      if (slot) {
+        // Reuse this origin's slot (it churned): swap tracks, m-line stays put.
+        void slot.v.sender.replaceTrack(o.stream.getVideoTracks()[0] ?? null);
+        void slot.a.sender.replaceTrack(o.stream.getAudioTracks()[0] ?? null);
+      } else {
+        slot = this.newPoolSlot(peer.pc, o.stream); // added active → one negotiation
+        peer.pool.byOrigin.set(origin, slot);
+      }
+      this.sealPeer(peer.pubkey, info.enc, info.relay, {
+        t: "call-fwd", callId: room.callId, streamId: slot.rs.id, from: origin, name: o.name,
+      }, `fwd-${room.callId}-${peer.pubkey}-${origin}`, true);
+      this.scheduleReneg(peer);
+      return;
+    }
+
+    // Mesh / non-forwarder fallback: direct addTrack + renegotiate per origin.
+    for (const track of o.stream.getTracks()) peer.pc.addTrack(track, o.stream);
     this.sealPeer(peer.pubkey, info.enc, info.relay, {
       t: "call-fwd", callId: room.callId, streamId: o.stream.id, from: origin, name: o.name,
     }, `fwd-${room.callId}-${peer.pubkey}-${origin}`, true);

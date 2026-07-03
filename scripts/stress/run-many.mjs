@@ -33,6 +33,7 @@ const browser = await chromium.launch({
 
 const Ns = process.argv.slice(2).map(Number).filter(Boolean);
 if (!Ns.length) Ns.push(8, 12, 16, 20);
+const DBG = !!process.env.POOLDBG; // POOLDBG=1 → pool trace + per-node topology
 
 const results = [];
 for (const n of Ns) {
@@ -40,6 +41,13 @@ for (const n of Ns) {
   const ctx = await browser.newContext({ permissions: ['camera', 'microphone'] });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => console.log(`  [N=${n}] pageerror: ${e.message}`));
+  if (DBG) {
+    await page.addInitScript(() => {
+      window.__POOLDBG = true;
+      window.addEventListener('unhandledrejection', (e) => console.log('[POOL] REJECT ' + (e.reason?.message || e.reason)));
+    });
+    page.on('console', (m) => { const t = m.text(); if (t.startsWith('[POOL]')) console.log('  ' + t); });
+  }
   await page.goto('http://127.0.0.1:8898/scripts/stress/many.html');
   await page.waitForFunction('window.__ready === true', { timeout: 20000 });
   try {
@@ -47,6 +55,7 @@ for (const n of Ns) {
       ['http://127.0.0.1:4000', 'ws://127.0.0.1:4000/socket', n, fwd]);
     results.push(r);
     console.log(`N=${String(n).padStart(3)} fwd=${fwd}  ${r.complete ? '✓ full mesh' : '✗ partial'}  fullPeers=${r.fullPeers}/${n} medPeers=${r.medPeers} join=${r.joinMs ?? '—'}ms streams=${r.inboundStreams} fps/stream=${r.fpsPerStream}`);
+    if (DBG && r.peerSets) for (const ps of r.peerSets) console.log(`    ${ps.role} ${ps.pk} sees ${ps.count}: ${ps.sees.join(' ')}`);
   } catch (e) {
     console.log(`N=${n}: ERROR ${e.message}`);
     results.push({ n, error: e.message });

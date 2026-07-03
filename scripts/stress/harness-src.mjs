@@ -1,5 +1,7 @@
 import * as sdk from '../../packages/sdk/src/index.ts';
 
+window.__VOXPOOLDEBUG = window.__POOLDBG === true; // pool trace when run.mjs asks
+
   // TINY video mode (window.__tinyVideo, set by run.mjs from TINY=1): a few
   // pixels at low fps so ONE machine can run many encoders and we can probe the
   // fan-out TOPOLOGY at higher participant counts. Quality is irrelevant to the

@@ -45,6 +45,7 @@ function makeStore() {
 
 window.harnessMany = {
   async run(httpBase, socketUrl, n, forwarders) {
+    window.__VOXPOOLDEBUG = window.__POOLDBG === true; // pool trace when asked
     const nodes = [];
     for (let i = 0; i < n; i++) {
       const identity = sdk.createIdentity();
@@ -113,6 +114,13 @@ window.harnessMany = {
       inboundStreams: b.inbound,
       aggFps: +((b.f - a.f) / 4).toFixed(0),
       fpsPerStream: b.inbound ? +(((b.f - a.f) / 4) / b.inbound).toFixed(1) : 0,
+      // Per-node topology ground truth: who each node actually sees (origin pubkeys).
+      peerSets: nodes.map((nd) => ({
+        pk: nd.pubkey.slice(0, 6),
+        role: forwarders >= 1 && ids.slice(0, Math.max(1, forwarders)).includes(nd.pubkey) ? 'FWD' : 'leaf',
+        sees: [...nd.st.peers].map((p) => p.slice(0, 6)).sort(),
+        count: nd.st.peers.size,
+      })),
     };
   },
 };

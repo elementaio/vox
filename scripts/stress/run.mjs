@@ -52,6 +52,13 @@ async function runScenario(browser, { label, n, forwarders: fwdCount, video = tr
     const page = await ctx.newPage();
     page.on('pageerror', (e) => console.log(`  [${label} P${i}] pageerror: ${e.message}`));
     await page.addInitScript((tiny) => { window.__tinyVideo = tiny; }, process.env.TINY === '1');
+    if (process.env.POOLDBG) {
+      await page.addInitScript((idx) => {
+        window.__POOLDBG = true;
+        window.addEventListener('unhandledrejection', (e) => console.log(`[POOL] P${idx} REJECT ` + (e.reason?.message || e.reason)));
+      }, i);
+      page.on('console', (m) => { const t = m.text(); if (t.startsWith('[POOL]')) console.log(`  P${i} ${t.slice(7)}`); });
+    }
     await page.goto(HARNESS_URL);
     await page.waitForFunction('window.__ready === true');
     pages.push(page);
@@ -152,9 +159,12 @@ async function runScenario(browser, { label, n, forwarders: fwdCount, video = tr
 const SCENARIOS = {
   mesh3:  { label: 'mesh3',  n: 3,  forwarders: 0 },
   mesh4:  { label: 'mesh4',  n: 4,  forwarders: 0 },
+  fwd3:   { label: 'fwd3',   n: 3,  forwarders: 1 },
   fwd6:   { label: 'fwd6',   n: 6,  forwarders: 1 },
   fwd8:   { label: 'fwd8',   n: 8,  forwarders: 1 },
   fwd10:  { label: 'fwd10',  n: 10, forwarders: 1 },
+  dual6:  { label: 'dual6',  n: 6,  forwarders: 2 },
+  dual8:  { label: 'dual8',  n: 8,  forwarders: 2 },
   dual10: { label: 'dual10', n: 10, forwarders: 2 },
   fwd12:  { label: 'fwd12',  n: 12, forwarders: 1 },
   dual12: { label: 'dual12', n: 12, forwarders: 2 },
