@@ -87,6 +87,9 @@ config :vox, :blob_download_rate, 600
 # token doesn't stay valid forever.
 config :vox, :enroll_token_ttl_ms, 604_800_000
 
+# Directory search cap per caller per minute (find-people is opt-in + signed).
+config :vox, :directory_search_rate, 120
+
 # Membership: :open (anyone with a valid keypair) or :invite (only pubkeys
 # enrolled via an admin-issued token — a guarded/private network).
 config :vox, :membership_mode, :open

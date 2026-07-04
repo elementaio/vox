@@ -46,6 +46,15 @@ defmodule VoxWeb.Router do
     post "/admin/enroll_token", MembershipController, :create_token
   end
 
+  # Opt-in "find people" directory (signed requests; member-scoped on a gated relay).
+  scope "/", VoxWeb do
+    pipe_through :api
+    post "/directory/register", DirectoryController, :register
+    post "/directory/unregister", DirectoryController, :unregister
+    get "/directory/search", DirectoryController, :search
+    get "/directory/lookup", DirectoryController, :lookup
+  end
+
   # Admin JSON API (behind the /admin web panel; Bearer ADMIN_TOKEN).
   scope "/admin", VoxWeb do
     pipe_through :api

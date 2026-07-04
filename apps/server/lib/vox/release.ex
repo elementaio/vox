@@ -7,7 +7,8 @@ defmodule Vox.Release do
     {3, Vox.Migrations.AddFederationOutbox},
     {4, Vox.Migrations.AddKnownRelays},
     {5, Vox.Migrations.AddMembership},
-    {6, Vox.Migrations.AddAdminAudit}
+    {6, Vox.Migrations.AddAdminAudit},
+    {7, Vox.Migrations.AddDirectory}
   ]
 
   def migrate do
