@@ -7,6 +7,11 @@ defmodule VoxWeb.UserSocket do
   # sealed, so this one channel is the whole client-facing surface.
   channel "inbox:*", VoxWeb.InboxChannel
 
+  # Ephemeral meeting rooms — "join by link". Open to guests (see RoomChannel);
+  # membership is enforced per-channel, not at the socket, so an external guest
+  # can join a meeting without being able to open anyone's inbox.
+  channel "room:*", VoxWeb.RoomChannel
+
   # Max clock skew / replay window for the signed auth timestamp.
   @auth_window_ms 5 * 60 * 1000
 
@@ -27,9 +32,10 @@ defmodule VoxWeb.UserSocket do
          {:ok, sig} <- decode_hex(sig_hex),
          {ts_int, ""} <- Integer.parse(ts),
          true <- fresh?(ts_int),
-         true <- verify(pubkey, "#{pubkey_hex}|#{enc_hex}|#{ts}", sig),
-         # Guarded membership: on a private relay, only enrolled pubkeys connect.
-         true <- Vox.Membership.allowed?(pubkey_hex) do
+         true <- verify(pubkey, "#{pubkey_hex}|#{enc_hex}|#{ts}", sig) do
+      # Membership is enforced PER CHANNEL, not here: an inbox (messaging) requires
+      # a member, but a meeting room welcomes guests. So the socket only proves key
+      # possession; the InboxChannel does the members-only gate.
       name = Map.get(params, "name", short(pubkey_hex))
 
       {:ok,

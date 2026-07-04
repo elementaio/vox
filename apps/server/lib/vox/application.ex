@@ -11,6 +11,8 @@ defmodule Vox.Application do
       VoxWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:vox, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Vox.PubSub},
+      # Tracks meeting-room rosters (who's in a room) for the join-by-link flow.
+      VoxWeb.Presence,
       # Durable store for the engine's ports (SQLite on disk by default), then
       # run pending migrations before serving.
       Vox.Repo,

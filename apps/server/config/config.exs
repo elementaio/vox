@@ -91,6 +91,12 @@ config :vox, :enroll_token_ttl_ms, 604_800_000
 # enrolled via an admin-issued token — a guarded/private network).
 config :vox, :membership_mode, :open
 
+# Meeting rooms ("join by link"): allow non-member GUESTS to join a room (true),
+# or restrict rooms to members too (false) for a fully-closed org. Messaging is
+# always members-only regardless. Per-socket room-signal flood cap (per minute).
+config :vox, :allow_guest_rooms, true
+config :vox, :room_signal_rate, 1200
+
 # chat_engine ports → durable Ecto adapters (work on SQLite or Postgres). The
 # engine code is UNCHANGED; only the body's config points at the adapters —
 # that's the whole point of the ports design. Auth stays the trivial allow-all.

@@ -16,22 +16,29 @@ defmodule VoxWeb.InboxChannel do
 
   @impl true
   def join("inbox:" <> pubkey, params, socket) do
-    if pubkey == socket.assigns[:pubkey] do
-      # Ensure the inbox conversation exists with this identity as its member,
-      # so an offline recipient still catches up on reconnect.
-      :ok = Chat.create_conversation(pubkey, [pubkey])
-      device_id = Map.get(params, "device_id") || random_id()
+    cond do
+      pubkey != socket.assigns[:pubkey] ->
+        {:error, %{reason: "forbidden — you can only open your own inbox"}}
 
-      case Chat.Session.connect(%{
-             user_id: pubkey,
-             device_id: device_id,
-             transport: {VoxWeb.EngineTransport, self()}
-           }) do
-        {:ok, session} -> {:ok, assign(socket, :session, session)}
-        {:error, reason} -> {:error, %{reason: inspect(reason)}}
-      end
-    else
-      {:error, %{reason: "forbidden — you can only open your own inbox"}}
+      # Members-only messaging on a guarded relay (this gate moved here from the
+      # socket so guests can still join meeting rooms without an inbox).
+      not Vox.Membership.allowed?(pubkey) ->
+        {:error, %{reason: "not a member of this relay"}}
+
+      true ->
+        # Ensure the inbox conversation exists with this identity as its member,
+        # so an offline recipient still catches up on reconnect.
+        :ok = Chat.create_conversation(pubkey, [pubkey])
+        device_id = Map.get(params, "device_id") || random_id()
+
+        case Chat.Session.connect(%{
+               user_id: pubkey,
+               device_id: device_id,
+               transport: {VoxWeb.EngineTransport, self()}
+             }) do
+          {:ok, session} -> {:ok, assign(socket, :session, session)}
+          {:error, reason} -> {:error, %{reason: inspect(reason)}}
+        end
     end
   end
 
