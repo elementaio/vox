@@ -16,6 +16,13 @@ export { seal, open, deriveEncryptionKey } from "./crypto";
 export { createIdentity, restoreIdentity, sign, authParams, Vault, VAULT_PREFIX } from "./identity";
 export { encryptAndUpload, downloadAndDecrypt } from "./blobs";
 export { inviteToken, parseInvite } from "./invite";
+export {
+  registerHandle,
+  searchDirectory,
+  lookupHandle,
+  unregisterHandle,
+  entryToContact,
+} from "./directory";
 export { enroll } from "./enroll";
 export { PROTOCOL_VERSION, inboxTopic, SOCKET_PATH, EVENTS } from "./protocol";
 export { Client } from "./client";
@@ -40,4 +47,5 @@ export type {
 } from "./types";
 export type { ClientConfig } from "./client";
 export type { RoomConfig, RoomEvents } from "./room";
+export type { DirectoryEntry } from "./directory";
 export type { Transport, TransportEvents, Outbound, PresenceRow } from "./transport";
