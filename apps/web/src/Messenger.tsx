@@ -15,7 +15,8 @@ import { type Identity } from "./lib/identity";
 import { hasPasskey, isPasskeySupported, registerPasskey } from "./lib/passkey";
 import { inviteLink, parseInvite } from "./lib/invite";
 import { newMeeting } from "./lib/meeting";
-import { serverLabel, setServer, socketUrl } from "./lib/server";
+import { serverLabel, setServer, socketUrl, httpBase } from "./lib/server";
+import { searchDirectory, registerHandle, entryToContact, type DirectoryEntry } from "@elementaio/vox-sdk";
 import { enroll } from "./lib/enroll";
 import { useLocales } from "./locales";
 import { presenceText, previewText, time } from "./lib/format";
@@ -78,6 +79,13 @@ export default function Messenger({
   const [addLink, setAddLink] = useState("");
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dirQuery, setDirQuery] = useState("");
+  const [dirResults, setDirResults] = useState<DirectoryEntry[]>([]);
+  const [dirAdded, setDirAdded] = useState<Set<string>>(new Set());
+  const [handleInput, setHandleInput] = useState("");
+  const [handleMsg, setHandleMsg] = useState("");
+  const dirTimer = useRef<number | undefined>(undefined);
+  const dirSeq = useRef(0);
   const [theme, setTheme] = useState<Theme>(currentTheme());
   const [networkOpen, setNetworkOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -443,6 +451,39 @@ export default function Messenger({
     fn();
   }
 
+  // Directory: search people (debounced, stale-guarded) and add a result.
+  function onDirSearch(v: string) {
+    setDirQuery(v);
+    window.clearTimeout(dirTimer.current);
+    if (v.trim().length < 2) {
+      setDirResults([]);
+      return;
+    }
+    const seq = ++dirSeq.current;
+    dirTimer.current = window.setTimeout(() => {
+      void searchDirectory(identity, httpBase(), v.trim()).then((r) => {
+        if (seq === dirSeq.current) setDirResults(r.filter((e) => e.pubkey !== identity.publicKeyHex));
+      });
+    }, 250);
+  }
+
+  async function addFromDir(e: DirectoryEntry) {
+    await clientRef.current?.addContact(entryToContact(e));
+    setDirAdded((s) => new Set(s).add(e.pubkey));
+    setAddOpen(false);
+    openConversation(e.pubkey);
+  }
+
+  async function saveHandle() {
+    const h = handleInput.trim().toLowerCase();
+    if (!/^[a-z0-9_]{3,30}$/.test(h)) {
+      setHandleMsg(t("directory.invalid"));
+      return;
+    }
+    const res = await registerHandle(identity, httpBase(), h, httpBase());
+    setHandleMsg(res.ok ? t("directory.saved") : res.error === "handle taken" ? t("directory.taken") : t("directory.invalid"));
+  }
+
   function beginGroupCall(pubkeys: string[], video: boolean) {
     setGroupActive(true);
     setGroupStarterOpen(false);
@@ -716,6 +757,43 @@ export default function Messenger({
                 </div>
 
                 <div className="add-card">
+                  <h3>{t("directory.findPeople")}</h3>
+                  <p className="hint">{t("directory.findHint")}</p>
+                  <div className="add-field">
+                    <input
+                      placeholder={t("directory.searchPlaceholder")}
+                      value={dirQuery}
+                      onChange={(e) => onDirSearch(e.target.value)}
+                    />
+                  </div>
+                  {dirResults.length > 0 && (
+                    <div className="dir-results">
+                      {dirResults.map((e) => (
+                        <div className="dir-row" key={e.pubkey}>
+                          <div className="avatar sm">{(e.name || e.handle).slice(0, 1).toUpperCase()}</div>
+                          <div className="dir-info">
+                            <div className="dir-name">{e.name || e.handle}</div>
+                            <div className="dir-handle">@{e.handle}</div>
+                          </div>
+                          <button
+                            className="dir-add"
+                            disabled={dirAdded.has(e.pubkey)}
+                            onClick={() => addFromDir(e)}
+                          >
+                            {dirAdded.has(e.pubkey) ? t("directory.added") : t("directory.add")}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {dirQuery.trim().length >= 2 && dirResults.length === 0 && (
+                    <div className="dir-empty">{t("directory.noResults")}</div>
+                  )}
+                </div>
+
+                <div className="add-divider">{t("chat.or")}</div>
+
+                <div className="add-card">
                   <h3>{t("chat.yourInvite")}</h3>
                   <p className="hint">{t("chat.yourInviteHint")}</p>
                   <div className="qr-row">
@@ -730,6 +808,28 @@ export default function Messenger({
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div className="add-divider">{t("chat.or")}</div>
+
+                <div className="add-card">
+                  <h3>{t("directory.beFindable")}</h3>
+                  <p className="hint">{t("directory.beFindableHint")}</p>
+                  <div className="add-field handle-field">
+                    <span className="handle-at">@</span>
+                    <input
+                      placeholder={t("directory.handlePlaceholder")}
+                      value={handleInput}
+                      onChange={(e) => {
+                        setHandleInput(e.target.value);
+                        setHandleMsg("");
+                      }}
+                    />
+                    <button className="go" onClick={saveHandle}>
+                      {t("directory.save")}
+                    </button>
+                  </div>
+                  {handleMsg && <div className="handle-msg">{handleMsg}</div>}
                 </div>
 
                 <div className="add-divider">{t("chat.or")}</div>

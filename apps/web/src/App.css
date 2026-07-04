@@ -1149,6 +1149,71 @@ button {
   opacity: 0.4;
   cursor: default;
 }
+
+/* directory: find people + claim handle */
+.dir-results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+}
+.dir-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 8px;
+  border-radius: 11px;
+}
+.dir-row:hover {
+  background: var(--border-2);
+}
+.dir-info {
+  flex: 1;
+  min-width: 0;
+}
+.dir-name {
+  font-weight: 600;
+  font-size: 14.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dir-handle {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.dir-add {
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 7px 15px;
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+.dir-add:disabled {
+  background: var(--border);
+  color: var(--muted);
+}
+.dir-empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 10px 4px 2px;
+}
+.handle-field {
+  align-items: center;
+}
+.handle-at {
+  color: var(--muted);
+  font-weight: 700;
+  padding-inline-start: 2px;
+}
+.handle-msg {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 8px;
+}
 .add-divider {
   display: flex;
   align-items: center;

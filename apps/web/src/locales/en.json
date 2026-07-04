@@ -162,6 +162,21 @@
     "newMeeting": "New meeting",
     "newMeetingSub": "Start a call and share a link — guests join with no account"
   },
+  "directory": {
+    "findPeople": "Find people",
+    "findHint": "Search by name or @handle on this relay.",
+    "searchPlaceholder": "Search people…",
+    "add": "Add",
+    "added": "Added",
+    "noResults": "No matches.",
+    "beFindable": "Let people find you",
+    "beFindableHint": "Claim an @handle so others on this relay can add you by name.",
+    "handlePlaceholder": "your_handle",
+    "save": "Save",
+    "saved": "Saved ✓",
+    "taken": "That handle is taken.",
+    "invalid": "3–30 letters, numbers, or _."
+  },
   "prompts": {
     "editMessage": "Edit message:",
     "deleteForEveryone": "Delete this message for everyone?",
