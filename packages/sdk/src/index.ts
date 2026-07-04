@@ -19,6 +19,7 @@ export { inviteToken, parseInvite } from "./invite";
 export { enroll } from "./enroll";
 export { PROTOCOL_VERSION, inboxTopic, SOCKET_PATH, EVENTS } from "./protocol";
 export { Client } from "./client";
+export { RoomCall, newRoomId } from "./room";
 export { PhoenixTransport } from "./transport";
 export { randomId, toBase64, fromBase64 } from "./util";
 
@@ -38,4 +39,5 @@ export type {
   StoredMessage,
 } from "./types";
 export type { ClientConfig } from "./client";
+export type { RoomConfig, RoomEvents } from "./room";
 export type { Transport, TransportEvents, Outbound, PresenceRow } from "./transport";
